@@ -5,7 +5,7 @@ class WuestenErsteller
     @wind = wind
     @bild = bild
     @entfernungen = berechneEntfernung(bild)
-    @duenen = Array.new(@entfernungen.length) {Array.new(@entfernungen[0].length, 0)}
+    @duenen = Array.new(@entfernungen.length * 2) {Array.new(@entfernungen[0].length, 0)}
     4.times do
       erschaffeDuene(((@entfernungen[0].length - @entfernungen[0].length / 5) * rand(0) + @entfernungen[0].length / 10).round , ((@entfernungen.length  - @entfernungen.length / 5) * rand(0) + @entfernungen.length / 10).round)
     end
