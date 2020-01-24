@@ -1,0 +1,63 @@
+
+Dieses Programm soll helfen Fantasy-Karten zu erzeugen. Dafür wird eine Eingabe verlangt, die dann vom Kartenmaler umgewandelt wird.
+Zur Verwendung des Programms gehe ins "bin"-Verzeichnis und gib den nachfolgenden Befehl ein, wobei "Eingabe" der Pfad zur Eingabedatei und "Ausgabe" der Pfad zur Ausgabe ist. Letzteres ist freiwillig. Per Default wird angenommen, dass die Eingabe im Verzeichnis "eingabe" ist und die Ausgabe ins Verzeichnis "ausgabe" soll. Ferner wird wenn nicht anders gesagt der selbe Name für die Ausgabe wie für die Eingabe angenommen.
+Kommandozeile:
+ruby kartenMaler.rb Eingabe Ausgabe
+
+Erklärung zur eingabe-Datei:
+Es wird erwartet, dass die Eingabe eine png-Datei ist. Die Ausgabe wird erzeugt, indem die Eingabe Pixel für Pixel durchgegangen wird. Nachfolgend schreiben wir abkürzend rx gy bz für einen Pixel der als rot x, als grün y und als blau z hat, in der rgb-Schreibweise, wobei x,y und z jeweils Werte von 0 bis 255 sind.
+Bedeutungen der Pixel:
+
+r0 gy bz: male einen Pixel der Farbe rz gz bz, der übermalt werden darf
+
+rx=1-9 gy bz: Hier soll ein Baum stehen. Die Bäume werden nach einem komplizierten Verfahren erzeugt, die dafür sorgen, dass die Wälder vernünftig aussehen
+       	      x definiert hierbei, wie dicht der Wald ist. Je größer x, desto dünner der Wald
+       	      y definiert, wie hoch die Wahrscheinlichkeit ist, dass es sich um einen Laubbaum handelt. 0 bedeutet garantiert ein Nadelbaum, 255 bedeutet garantiert ein Nadelbaum. Dazwischen finden sich Mischwälder
+r10 gy bz: Hier dürfen Bäume herüberlehnen. Anzumerken ist, dass der Baumhintergrund genutzt wird
+	      
+rx=11-19 gy bz: Hier soll ein Baum stehen. Diese Felder dürfen aber auch von anderen Landschaften beansprucht werden. Anzumerken ist dabei, dass Mischungen einander nicht berücksichtigen und daher nahe zusammen stehen können
+       	    	x definiert hierbei, wie dicht der Wald ist. Je größer x, desto dünner der Wald
+       		y definiert, wie hoch die Wahrscheinlichkeit ist, dass es sich um einen Laubbaum handelt. 0 bedeutet garantiert ein Nadelbaum, 255 bedeutet garantiert ein Nadelbaum. Dazwischen finden sich Mischwälder
+
+r20 gy bz: Grundsätzlich Wald, aber anschließend wird dieser Pixel mit rz gz bz gefärbt. Verwende beispielsweise für Namen von Wäldern. Die Bäume stehen so dichte, wie bei 15. Tipp: Verwende schwarze Schrift mit weißem Rand
+       		y definiert, wie hoch die Wahrscheinlichkeit ist, dass es sich um einen Laubbaum handelt. 0 bedeutet garantiert ein Nadelbaum, 255 bedeutet garantiert ein Nadelbaum. Dazwischen finden sich Mischwälder
+
+rx=21-29 gy bz: Hier soll normales Wasser stehen. y und z werden zur Zeit nicht verwendet
+
+rx=41-49 gy bz: Hier soll ein Hügel/Berg stehen.
+	    	x definiert, wie dicht die Hügel/Berge stehen. Je kleiner x, desto dichter
+		y definiert, wie hoch der Hügel/Berg ist. Ab einer gewissen Höhe gibt es Schnee.
+
+r50 gy bz: Hier dürfen Hügel/Berge herüberlehnen. Hier wird der Berg-Hintergrund genommen
+
+rx=51-59 gy bz: Hier soll ein Hügel/Berg stehen. Aber hier dürfen auch andere Sachen stehen. Anzumerken ist dabei, dass Mischungen einander nicht berücksichtigen und daher nahe zusammen stehen können
+	    	x definiert, wie dicht die Hügel/Berge stehen. Je kleiner x, desto dichter
+		y definiert, wie hoch der Hügel/Berg ist. Ab einer gewissen Höhe gibt es Schnee.
+
+r60 gy bz: Grundsätzlich Hügel/Berge, aber anschließend wird dieser Pixel mit rz gz bz gefärbt. Verwende beispielsweise für Namen von Gebirgen. Die Dichte der Hügel/Berge ist wie bei 55. Tipp: Verwende schwarze Schrift mit weißem Rand
+		y definiert, wie hoch der Hügel/Berg ist. Ab einer gewissen Höhe gibt es Schnee.
+	
+rx=61-69 gy bz: Hier soll Gras wachsen.
+	    	x definiert, wie groß das Gras wird. Großes Gras wächst weniger dicht
+		y definiert, wie sehr das Gras geneigt ist. 128 bedeutet im Schnitt keine Neigung, alles was kleiner ist, bedeutet eine Neigung nach links, alles was größer ist eine Neigung nach rechts. Das kann beispielsweise genutzt werden, um zu zeigen, dass hier Wind von links nach rechts weht
+		z definiert, wie viele Blätter es an den Halmen hat. Je größer, desto mehr Blätter
+
+r70 gy bz: Hier dürfen Gräser herüberlehnen. Hier wird der Gras-Hintergrund genommen
+
+rx=71-79 gy bz: Hier soll Gras wachsen. Es darf aber auch anderes hier sein
+	    	x definiert, wie groß das Gras wird. Großes Gras wächst weniger dicht
+		y definiert, wie sehr das Gras geneigt ist. 128 bedeutet im Schnitt keine Neigung, alles was kleiner ist, bedeutet eine Neigung nach links, alles was größer ist eine Neigung nach rechts. Das kann beispielsweise genutzt werden, um zu zeigen, dass hier Wind von links nach rechts weht
+		z definiert, wie viele Blätter es an den Halmen hat. Je größer, desto mehr Blätter
+
+r80 gy bz: Hier dürfen Gräser herüberlehnen, aber anschließend wird dieser Pixel mit rz gz bz gefärbt. Verwende beispielsweise für Namen von Ebenen. 
+
+rx=81-90 gy bz: Hier soll Wüste sein.
+
+rx=91-99 gy bz: Hier soll Wüste sein. Es darf aber auch anderes hier sein
+
+r80 gy bz: Dieses Feld wird als Wüste behandelt, aber anschließend wird dieser Pixel mit rz gz bz gefärbt. Verwende beispielsweise für Namen von Ebenen. 
+
+r254 gy bz: male einen Pixel der Farbe rz gz bz, der übermalt werden darf, aber anschließend noch mit rz gz bz gefärbt wird. Dies kann für Namen verwendet werden. Wenn beispielsweise ein Wald einen Namen hat. Tipp: Verwende schwarze Schrift mit weißem Rand
+
+r255 gy bz: Male diesen Pixel in der Farbe rz gz bz, der nicht übermalt werden darf
+
