@@ -6,7 +6,7 @@ class WuestenErsteller
     @bild = bild
     @entfernungen = berechneEntfernung(bild)
     @duenen = Array.new(@entfernungen.length) {Array.new(@entfernungen[0].length, 0)}
-    400.times do
+    4.times do
       erschaffeDuene(((@entfernungen[0].length - @entfernungen[0].length / 5) * rand(0) + @entfernungen[0].length / 10).round , ((@entfernungen.length  - @entfernungen.length / 5) * rand(0) + @entfernungen.length / 10).round)
     end
     #10.times do |y|
@@ -20,8 +20,7 @@ class WuestenErsteller
 
   def erschaffeDuene(x, y)
     duene = Array.new(@entfernungen.length) {Array.new(@entfernungen[0].length, 0)}
-    maxHoehe = @entfernungen[y][x] ** 0.4 * @wind.geschwindigkeit(x.round, y.round) / 5
-    p maxHoehe
+    maxHoehe = @entfernungen[y][x] ** 0.4 * @wind.geschwindigkeit(x.round, y.round / 2.0) / 5
     maxHoehe *= 3
     alter = rand(0) * (0.5 + rand(0)) / 1.5
     hoehe = maxHoehe + maxHoehe * rand(0)
@@ -40,10 +39,10 @@ class WuestenErsteller
   def erstelleArm(x, y, hoehe, maxHoehe, laenge, orientierung, alter, duene)
     hoehe = [hoehe, @entfernungen[y][x] / 0.27].min
     laenge.round.times do |i|
-      vektor = @wind.senkrecht(x, y, orientierung)
+      vektor = @wind.senkrecht(x, y / 2.0, orientierung)
       #vektor = @wind.wind[y.round][x.round].senkrecht(orientierung)
       #vektor = vektor.zip(@wind.wind[y.round][x.round].vektor).map {|element| element[0] * (1 - i * alter / laenge.to_f) + i * alter / laenge.to_f * element[1]}
-      vektor = vektor.zip(@wind.vektor(x.round, y.round)).map {|element| element[0] * (1 - i * alter / laenge.to_f) + i * alter / laenge.to_f * element[1]}
+      vektor = vektor.zip(@wind.vektor(x.round, y.round / 2.0)).map {|element| element[0] * (1 - i * alter / laenge.to_f) + i * alter / laenge.to_f * element[1]}
       x += vektor[0] / (vektor[0] ** 2 + vektor[1] ** 2) ** 0.5 / 8
       y += vektor[1] / (vektor[0] ** 2 + vektor[1] ** 2) ** 0.5 / 8
       return if x.round < 0 or y.round < 0 or y.round >= @duenen.length or x.round >= @duenen[0].length
@@ -69,7 +68,7 @@ class WuestenErsteller
     return if x.round < 0 or y.round < 0 or y.round >= @duenen.length or x.round >= @duenen[0].length
     hoehe = [hoehe, @entfernungen[y.round][x.round] * 3 ** 0.5].min
     30.times do
-      richtung = @wind.richtung(x.round, y.round)
+      richtung = @wind.richtung(x.round, y.round / 2.0)
       xAlt = x
       yAlt = y
       x += richtung[0] * 0.5
@@ -79,7 +78,7 @@ class WuestenErsteller
       return if x.round < 0 or y.round < 0 or y.round >= @duenen.length or x.round >= @duenen[0].length
       duene[y.round][x.round] = [duene[y.round][x.round], hoehe].max
     end
-    vektor = @wind.senkrecht(x.round, y.round, 1)
+    vektor = @wind.senkrecht(x.round, y.round / 2.0, 1)
     vorwaertsErstellen(x + vektor[0] / (vektor[0] ** 2 + vektor[1] ** 2) ** 0.5 / 3, y + vektor[1] / (vektor[0] ** 2 + vektor[1] ** 2) ** 0.5 / 3, hoehe, duene)
     vorwaertsErstellen(x - vektor[0] / (vektor[0] ** 2 + vektor[1] ** 2) ** 0.5 / 3, y - vektor[1] / (vektor[0] ** 2 + vektor[1] ** 2) ** 0.5 / 3, hoehe, duene)
   end
@@ -88,7 +87,7 @@ class WuestenErsteller
     return if x.round < 0 or y.round < 0 or y.round >= @duenen.length or x.round >= @duenen[0].length
     hoehe = [hoehe, @entfernungen[y.round][x.round] / 0.27].min
     30.times do
-      richtung = @wind.richtung(x.round, y.round)
+      richtung = @wind.richtung(x.round, y.round / 2.0)
       xAlt = x
       yAlt = y
       x -= richtung[0] * 0.5
@@ -98,7 +97,7 @@ class WuestenErsteller
       return if x.round < 0 or y.round < 0 or y.round >= @duenen.length or x.round >= @duenen[0].length
       duene[y.round][x.round] = [duenen[y.round][x.round], hoehe].max
     end
-    vektor = @wind.senkrecht(x.round, y.round, 1)
+    vektor = @wind.senkrecht(x.round, y.round / 2.0, 1)
     rueckwaertsErstellen(x + vektor[0] / (vektor[0] ** 2 + vektor[1] ** 2) ** 0.5 / 3, y + vektor[1] / (vektor[0] ** 2 + vektor[1] ** 2) ** 0.5 / 3, hoehe, duene)
     rueckwaertsErstellen(x - vektor[0] / (vektor[0] ** 2 + vektor[1] ** 2) ** 0.5 / 3, y - vektor[1] / (vektor[0] ** 2 + vektor[1] ** 2) ** 0.5 / 3, hoehe, duene)
   end

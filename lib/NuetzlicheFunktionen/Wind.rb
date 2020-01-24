@@ -6,12 +6,12 @@ class Wind
   WindWinkelDivisor = 500
   WindZahl = 5
   def initialize(breite, hoehe)
-    @wind = Array.new(breite) {Array.new(hoehe) {Windrichtung.new()}}
+    @wind = Array.new(hoehe * 2 - 1) {Array.new(breite) {Windrichtung.new()}}
     zweiDWienerProzess = ZweiDWienerProzess.new()
     WindZahl.times do |i|
       zufallsWinkel = rand(0) * Math::PI
       #wiener = zweiDWienerProzess.erstelleZweiDWienerProzess(breite, hoehe, WindWienerAbstand)
-      wiener = definiereNeigungen(breite, hoehe, 0.6)
+      wiener = definiereNeigungen(breite, hoehe * 2 - 1, 0.6)
       @wind.zip(wiener).each do |ww|
         ww[0].zip(ww[1]).each do |windRichtung|
           #windRichtung[0].windRichtungErhalten(windRichtung[1] / WindWinkelDivisor)
@@ -25,6 +25,7 @@ class Wind
   attr_reader :wind
 
   def geschwindigkeit(x, y)
+    y = (y * 2).to_i
     array = [wind[y][x].geschwindigkeit()] * 4
     array += [wind[y][x - 1].geschwindigkeit()] if x > 0
     array += [wind[y][x + 1].geschwindigkeit()] if wind.length > 0 and x < wind[0].length - 1
@@ -34,6 +35,7 @@ class Wind
   end
 
   def senkrecht(x, y, orientierung)
+    y = (y * 2).to_i
     array = [wind[y][x].senkrecht(orientierung)] * 4
     array += [wind[y][x - 1].senkrecht(orientierung)] if x > 0
     array += [wind[y][x + 1].senkrecht(orientierung)] if wind.length > 0 and x < wind[0].length - 1
@@ -43,6 +45,7 @@ class Wind
   end
   
   def vektor(x, y)
+    y = (y * 2).to_i
     array = [wind[y][x].vektor] * 4
     array += [wind[y][x - 1].vektor] if x > 0
     array += [wind[y][x + 1].vektor] if wind.length > 0 and x < wind[0].length - 1
@@ -52,6 +55,7 @@ class Wind
   end
   
   def richtung(x, y)
+    y = (y * 2).to_i
     array = [wind[y][x].richtung] * 4
     array += [wind[y][x - 1].richtung] if x > 0
     array += [wind[y][x + 1].richtung] if wind.length > 0 and x < wind[0].length - 1
