@@ -1,14 +1,21 @@
 require "berechneEntfernung"
 
 class WuestenErsteller
+
+  GlaetteDistanz = 3
+  MaxHoehenFaktor = 80
+  ZufallsHoehen = 3.0
+  
   def initialize(bild, wind)
     @wind = wind
-    @bild = bild
-    @entfernungen = berechneEntfernung(bild)
-    @duenen = Array.new(@entfernungen.length * 2) {Array.new(@entfernungen[0].length, 0)}
+    generiereBild(bild)
+    @entfernungen = berechneEntfernung(@bild)
+    @duenen = Array.new(@entfernungen.length) {Array.new(@entfernungen[0].length) {rand(0) * ZufallsHoehen}}
+    glaette(@duenen)
     4.times do
-      erschaffeDuene(((@entfernungen[0].length - @entfernungen[0].length / 5) * rand(0) + @entfernungen[0].length / 10).round , ((@entfernungen.length  - @entfernungen.length / 5) * rand(0) + @entfernungen.length / 10).round)
+      erschaffeDuene(((@entfernungen[0].length - @entfernungen[0].length / 5) * rand(0) + @entfernungen[0].length / 10).round, ((@entfernungen.length  - @entfernungen.length / 5) * rand(0) + @entfernungen.length / 10).round)
     end
+    glaette(@duenen)
     #10.times do |y|
     #  10.times do |x|
     #    erschaffeDuene(((@entfernungen[0].length - 1) / 10 * (x + rand(0))).round, ((@entfernungen.length - 1) / 10 * (y + rand(0))).round)
@@ -18,9 +25,19 @@ class WuestenErsteller
 
   attr_reader :duenen
 
+  def generiereBild(bild)
+    @bild = ChunkyPNG::Image.new(bild.width, bild.height * 2, ChunkyPNG::Color::WHITE)
+    bild.height.times do |y|
+      bild.width.times do |x|
+        @bild[x, y * 2] = bild[x, y]
+        @bild[x, y * 2 + 1] = bild[x, y]
+      end
+    end
+  end
+    
   def erschaffeDuene(x, y)
-    duene = Array.new(@entfernungen.length) {Array.new(@entfernungen[0].length, 0)}
-    maxHoehe = @entfernungen[y][x] ** 0.4 * @wind.geschwindigkeit(x.round, y.round / 2.0) / 5
+    duene = Array.new(@bild.height) {Array.new(@bild.width, 0)}
+    maxHoehe = @entfernungen[y][x] ** 0.4 * @wind.geschwindigkeit(x.round, y.round / 2.0) / MaxHoehenFaktor
     maxHoehe *= 3
     alter = rand(0) * (0.5 + rand(0)) / 1.5
     hoehe = maxHoehe + maxHoehe * rand(0)
@@ -31,13 +48,53 @@ class WuestenErsteller
     erstelleDuenenPunkt(x, y, hoehe, duene)
     erstelleArm(x, y, hoehe, maxHoehe, laenge, 1, alter, duene)
     erstelleArm(x, y, hoehe, maxHoehe, laenge, -1, alter, duene)
+    glaette(duene)
     @duenen.each_with_index do |zeile, y|
-      zeile.collect!.with_index {|punkt, x| [punkt, duene[y][x]].max}
+      zeile.collect!.with_index {|punkt, x| (punkt ** 2 + duene[y][x] ** 2) ** 0.5}
     end
   end
 
+  def glaette(duene)
+    return if duene.length == 0
+    veraendert = true
+    obereSchranke = duene.flatten.max
+    untereSchranke = obereSchranke - Math::tan(Math::PI / 12)
+    while obereSchranke > 0
+      veraendert = false
+      duene.each_with_index do |zeile, y|
+        zeile.each_with_index {|wert, x|
+          glaettePunkt(x, y, duene)
+        }
+      end
+    end
+  end
+
+  def glaettePunkt(x, y, duene)
+    do
+      next if wert <= untereSchranke or wert > obereSchranke
+      minX = [0, x - GlaetteDistanz].max
+      maxX = [zeile.length - 1, x + GlaetteDistanz].min
+      minY = [0, y - GlaetteDistanz].max
+      maxY = [duene.length - 1, y + GlaetteDistanz].min
+      (maxY - minY + 1).times do |kurzY|
+        (maxX - minX + 1).times do |kurzX|
+          next if x == kurzX + minX and y == kurzY + minY
+          skalarprodukt = ((x - minX - kurzX) * @wind.richtung(x.round, y.round / 2.0)[0] + (y - minY - kurzY) * @wind.richtung(x.round, y.round / 2.0)[1])
+          faktor = skalarprodukt / ((x - minX - kurzX) ** 2 + (y - minY - kurzY) ** 2) ** 0.5
+          verlust = (Math::tan(Math::PI / 12) * (1 - faktor) / 2 + Math::tan(Math::PI / 6) * (1 + faktor) / 2) * ((x - minX - kurzX) ** 2 + (y - minY - kurzY) ** 2) ** 0.5
+          if verlust < 0 or verlust > 4.5 * Math::tan(Math::PI / 6)
+            p [@wind.richtung(x.round, y.round / 2.0), @wind.vektor(x.round, y.round / 2.0), @wind.geschwindigkeit(x.round, y.round / 2.0), skalarprodukt, faktor, verlust, [x, y], [kurzX, kurzY], ((x - minX - kurzX) ** 2 + (y - minY - kurzY) ** 2) ** 0.5, wert - verlust, duene[minY + kurzY][minX + kurzX]]
+            raise
+          end
+          duene[minY + kurzY][minX + kurzX] = [duene[minY + kurzY][minX + kurzX], wert - verlust].max
+        end
+      end
+      obereSchranke -= Math::tan(Math::PI / 12)
+      untereSchranke -= Math::tan(Math::PI / 12)
+    end
+  end
+  
   def erstelleArm(x, y, hoehe, maxHoehe, laenge, orientierung, alter, duene)
-    hoehe = [hoehe, @entfernungen[y][x] / 0.27].min
     laenge.round.times do |i|
       vektor = @wind.senkrecht(x, y / 2.0, orientierung)
       #vektor = @wind.wind[y.round][x.round].senkrecht(orientierung)
@@ -56,18 +113,15 @@ class WuestenErsteller
   
   def erstelleDuenenPunkt(x, y, hoehe, duene)
     hoeheAlt = hoehe
-    hoehe = (hoehe ** 2 + @duenen[y.round][x.round] ** 2) ** 0.5
-    hoehe = [hoehe, @entfernungen[y.round][x.round] / 0.27].min
-    #p [hoeheAlt, hoehe]
+    hoehe = [hoehe, (hoehe * (@entfernungen[y.round][x.round] * Math::tan(Math::PI / 12)) / 2) ** 0.5].min
     duene[y.round][x.round] = [duene[y.round][x.round], hoehe].max
-    vorwaertsErstellen(x, y, hoehe, duene)
-    rueckwaertsErstellen(x, y, hoehe, duene)
+    #vorwaertsErstellen(x, y, hoehe, duene)
+    #rueckwaertsErstellen(x, y, hoehe, duene)
   end
 
   def vorwaertsErstellen(x, y, hoehe, duene)
     return if x.round < 0 or y.round < 0 or y.round >= @duenen.length or x.round >= @duenen[0].length
-    hoehe = [hoehe, @entfernungen[y.round][x.round] * 3 ** 0.5].min
-    30.times do
+    100.times do
       richtung = @wind.richtung(x.round, y.round / 2.0)
       xAlt = x
       yAlt = y
@@ -85,8 +139,7 @@ class WuestenErsteller
   
   def rueckwaertsErstellen(x, y, hoehe, duene)
     return if x.round < 0 or y.round < 0 or y.round >= @duenen.length or x.round >= @duenen[0].length
-    hoehe = [hoehe, @entfernungen[y.round][x.round] / 0.27].min
-    30.times do
+    100.times do
       richtung = @wind.richtung(x.round, y.round / 2.0)
       xAlt = x
       yAlt = y

@@ -6,7 +6,7 @@ class Wind
   WindWinkelDivisor = 500
   WindZahl = 5
   def initialize(breite, hoehe)
-    @wind = Array.new(hoehe * 2 - 1) {Array.new(breite) {Windrichtung.new()}}
+    @wind = Array.new(hoehe * 2) {Array.new(breite) {Windrichtung.new()}}
     zweiDWienerProzess = ZweiDWienerProzess.new()
     WindZahl.times do |i|
       zufallsWinkel = rand(0) * Math::PI
@@ -20,18 +20,20 @@ class Wind
       end
       puts "#{i + 1} / #{WindZahl}"
     end
+    max = 0
+    @wind.each do |zeile|
+      zeile.each do |w|
+        max = [w.geschwindigkeit, max].max
+      end
+    end
+    puts max
   end
 
   attr_reader :wind
 
   def geschwindigkeit(x, y)
-    y = (y * 2).to_i
-    array = [wind[y][x].geschwindigkeit()] * 4
-    array += [wind[y][x - 1].geschwindigkeit()] if x > 0
-    array += [wind[y][x + 1].geschwindigkeit()] if wind.length > 0 and x < wind[0].length - 1
-    array += [wind[y - 1][x].geschwindigkeit()] if y > 0
-    array += [wind[y + 1][x].geschwindigkeit()] if y < wind.length - 1
-    array.reduce(:+) / array.length
+    v = vektor(x, y)
+    (v[0] ** 2 + v[1] ** 2) ** 0.5
   end
 
   def senkrecht(x, y, orientierung)
@@ -41,7 +43,7 @@ class Wind
     array += [wind[y][x + 1].senkrecht(orientierung)] if wind.length > 0 and x < wind[0].length - 1
     array += [wind[y - 1][x].senkrecht(orientierung)] if y > 0
     array += [wind[y + 1][x].senkrecht(orientierung)] if y < wind.length - 1
-    array.reduce {|e, f| e.zip(f).map { |a, b| a + b / array.length}}
+    array.reduce([0, 0]) {|e, f| e.zip(f).map { |a, b| a + b / array.length}}
   end
   
   def vektor(x, y)
@@ -51,16 +53,17 @@ class Wind
     array += [wind[y][x + 1].vektor] if wind.length > 0 and x < wind[0].length - 1
     array += [wind[y - 1][x].vektor] if y > 0
     array += [wind[y + 1][x].vektor] if y < wind.length - 1
-    array.reduce {|e, f| e.zip(f).map { |a, b| a + b / array.length}}
+    array.reduce([0, 0]) {|e, f| e.zip(f).map { |a, b| a + b / array.length}}
   end
   
   def richtung(x, y)
     y = (y * 2).to_i
-    array = [wind[y][x].richtung] * 4
-    array += [wind[y][x - 1].richtung] if x > 0
-    array += [wind[y][x + 1].richtung] if wind.length > 0 and x < wind[0].length - 1
-    array += [wind[y - 1][x].richtung] if y > 0
-    array += [wind[y + 1][x].richtung] if y < wind.length - 1
-    array.reduce {|e, f| e.zip(f).map { |a, b| a + b / array.length}}
+    array = [wind[y][x].vektor] * 4
+    array += [wind[y][x - 1].vektor] if x > 0
+    array += [wind[y][x + 1].vektor] if wind.length > 0 and x < wind[0].length - 1
+    array += [wind[y - 1][x].vektor] if y > 0
+    array += [wind[y + 1][x].vektor] if y < wind.length - 1
+    gs = geschwindigkeit(x, y / 2.0)
+    array.reduce([0, 0]) {|e, f| e.zip(f).map { |a, b| a + b / array.length / gs}}
   end
 end
