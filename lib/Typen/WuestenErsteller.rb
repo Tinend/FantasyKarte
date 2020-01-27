@@ -1,9 +1,10 @@
 require "berechneEntfernung"
+require "DuenenPunkt"
 
 class WuestenErsteller
 
   GlaetteDistanz = 3
-  MaxHoehenFaktor = 80
+  MaxHoehenFaktor = 20
   ZufallsHoehen = 3.0
   
   def initialize(bild, wind)
@@ -56,41 +57,48 @@ class WuestenErsteller
 
   def glaette(duene)
     return if duene.length == 0
-    veraendert = true
-    obereSchranke = duene.flatten.max
-    untereSchranke = obereSchranke - Math::tan(Math::PI / 12)
-    while obereSchranke > 0
-      veraendert = false
-      duene.each_with_index do |zeile, y|
-        zeile.each_with_index {|wert, x|
-          glaettePunkt(x, y, duene)
-        }
+    duenenPunkte = []
+    duene.length.times do |y|
+      duene[0].length.times do |x|
+        duenenPunkte.push(DuenenPunkt.new(x: x, y: y, hoehe: duene[y][x], wind: @wind)) if duene[y][x] >= Math::tan(Math::PI / 12)
       end
+    end
+    duenenPunkte.sort!
+    duenenPunkte.reverse!
+    duenenPunkte.each_with_index do |duenenPunkt, i|
+      #p [i.to_s + " / " + duenenPunkte.length.to_s, duene[duenenPunkt.y][duenenPunkt.x], [duenenPunkt.x, duenenPunkt.y]]
+      glaettePunkt(duenenPunkt, duene)
     end
   end
 
-  def glaettePunkt(x, y, duene)
-    do
-      next if wert <= untereSchranke or wert > obereSchranke
-      minX = [0, x - GlaetteDistanz].max
-      maxX = [zeile.length - 1, x + GlaetteDistanz].min
-      minY = [0, y - GlaetteDistanz].max
-      maxY = [duene.length - 1, y + GlaetteDistanz].min
+  def glaettePunkt(duenenPunkt, duene)
+    punkteListe = [duenenPunkt]
+    until punkteListe == []
+      punkteListe.sort!
+      punkteListe.reverse!
+      punkt = punkteListe.shift
+      next if punkt.hoehe < duene[punkt.y][punkt.x]
+      #p ["P", punkt.x, punkt.y, duene[punkt.y][punkt.x]]
+      verbesserbar = []
+      minX = [0, punkt.x - GlaetteDistanz].max
+      maxX = [duene[0].length - 1, punkt.x + GlaetteDistanz].min
+      minY = [0, punkt.y - GlaetteDistanz].max
+      maxY = [duene.length - 1, punkt.y + GlaetteDistanz].min
       (maxY - minY + 1).times do |kurzY|
         (maxX - minX + 1).times do |kurzX|
-          next if x == kurzX + minX and y == kurzY + minY
-          skalarprodukt = ((x - minX - kurzX) * @wind.richtung(x.round, y.round / 2.0)[0] + (y - minY - kurzY) * @wind.richtung(x.round, y.round / 2.0)[1])
-          faktor = skalarprodukt / ((x - minX - kurzX) ** 2 + (y - minY - kurzY) ** 2) ** 0.5
-          verlust = (Math::tan(Math::PI / 12) * (1 - faktor) / 2 + Math::tan(Math::PI / 6) * (1 + faktor) / 2) * ((x - minX - kurzX) ** 2 + (y - minY - kurzY) ** 2) ** 0.5
-          if verlust < 0 or verlust > 4.5 * Math::tan(Math::PI / 6)
-            p [@wind.richtung(x.round, y.round / 2.0), @wind.vektor(x.round, y.round / 2.0), @wind.geschwindigkeit(x.round, y.round / 2.0), skalarprodukt, faktor, verlust, [x, y], [kurzX, kurzY], ((x - minX - kurzX) ** 2 + (y - minY - kurzY) ** 2) ** 0.5, wert - verlust, duene[minY + kurzY][minX + kurzX]]
-            raise
+          lokalX = kurzX + minX
+          lokalY = kurzY + minY
+          next if punkt.x == lokalX and punkt.y == lokalY
+          neueHoehe = punkt.berechneHoehe(lokalX, lokalY)
+          if duene[lokalY][lokalX] < neueHoehe
+            #p [[punkt.x, punkt.y], [lokalX, lokalY], duene[lokalY][lokalX], neueHoehe]
+            #gets
+            duene[lokalY][lokalX] = neueHoehe
+            verbesserbar.push(DuenenPunkt.new(x: lokalX, y: lokalY, hoehe: neueHoehe, wind: @wind))
           end
-          duene[minY + kurzY][minX + kurzX] = [duene[minY + kurzY][minX + kurzX], wert - verlust].max
         end
       end
-      obereSchranke -= Math::tan(Math::PI / 12)
-      untereSchranke -= Math::tan(Math::PI / 12)
+      punkteListe += verbesserbar.sort.reverse
     end
   end
   
