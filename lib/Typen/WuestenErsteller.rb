@@ -14,9 +14,9 @@ class WuestenErsteller
     generiereBild(bild)
     @entfernungen = berechneEntfernung(@bild)
     @duenen = Array.new(@entfernungen.length) {Array.new(@entfernungen[0].length) {rand(0) * ZufallsHoehen}}
+    @frei = Array.new(@entfernungen.length) {Array.new(@entfernungen[0].length, true)}
     glaette(@duenen)
     erstelleDuenen()
-
   end
 
   def erstelleDuenen()
@@ -27,7 +27,7 @@ class WuestenErsteller
       x = nummer / @duenen.length
       y = nummer % @duenen.length
       #puts "#{index} / #{reihenfolge.length}"
-      if @duenen[y][x] <= FreieFelderMaxHoehe and rand(0) <= DuenenWkeit
+      if @frei[y][x] and rand(0) <= DuenenWkeit
         erschaffeDuene(x, y)
       end
     end
@@ -84,17 +84,21 @@ class WuestenErsteller
     end
     duenenPunkte.sort!
     duenenPunkte.reverse!
-    #duenenPunkte.each_with_index do |duenenPunkt, i|
+    duenenPunkte.each_with_index do |duenenPunkt, i|
       #p [i.to_s + " / " + duenenPunkte.length.to_s, duene[duenenPunkt.y][duenenPunkt.x], [duenenPunkt.x, duenenPunkt.y]]
-    #  glaettePunkt(duenenPunkt, duene)
-    #end
-  #end
+      glaettePunkt(duenenPunkt, duene)
+    end
+  end
 
-  #def glaettePunkt(duenenPunkt, duene)
+  def glaettePunkt(duenenPunkt, duene)
     punkteListe = duenenPunkte
     #punkteListe = [duenenPunkt]
+    maxHoehe = duenenPunkte.max.hoehe
     until punkteListe == []
-      punkteListe.sort!
+      if punkteListe[-1].hoehe + Math::tan(Math::PI / 12) < maxHoehe
+        punkteListe.sort!
+        maxHoehe = punkteListe[-1].hoehe
+      end
       punkt = punkteListe.pop
       next if punkt.hoehe < duene[punkt.y][punkt.x]
       #p ["P", punkt.x, punkt.y, duene[punkt.y][punkt.x]]
@@ -117,7 +121,7 @@ class WuestenErsteller
           end
         end
       end
-      punkteListe += verbesserbar.sort.reverse
+      punkteListe += verbesserbar
     end
   end
   
