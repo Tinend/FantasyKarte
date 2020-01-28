@@ -84,14 +84,15 @@ class WuestenErsteller
     end
     duenenPunkte.sort!
     duenenPunkte.reverse!
-    duenenPunkte.each_with_index do |duenenPunkt, i|
+    #duenenPunkte.each_with_index do |duenenPunkt, i|
       #p [i.to_s + " / " + duenenPunkte.length.to_s, duene[duenenPunkt.y][duenenPunkt.x], [duenenPunkt.x, duenenPunkt.y]]
-      glaettePunkt(duenenPunkt, duene)
-    end
-  end
+    #  glaettePunkt(duenenPunkt, duene)
+    #end
+  #end
 
-  def glaettePunkt(duenenPunkt, duene)
-    punkteListe = [duenenPunkt]
+  #def glaettePunkt(duenenPunkt, duene)
+    punkteListe = duenenPunkte
+    #punkteListe = [duenenPunkt]
     until punkteListe == []
       punkteListe.sort!
       punkt = punkteListe.pop
