@@ -7,7 +7,7 @@ $:.unshift(File.join(File.dirname(__FILE__), '..', 'lib', 'Typen'))
 require "Wind"
 require "WuestenErsteller"
 
-seitenLaenge = 100
+seitenLaenge = 50
 wind = Wind.new(seitenLaenge, seitenLaenge)
 
 png = ChunkyPNG::Image.new(seitenLaenge, seitenLaenge, ChunkyPNG::Color::WHITE)

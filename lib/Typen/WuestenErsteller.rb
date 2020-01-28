@@ -6,6 +6,8 @@ class WuestenErsteller
   GlaetteDistanz = 3
   MaxHoehenFaktor = 20
   ZufallsHoehen = 3.0
+  FreieFelderMaxHoehe = 5
+  DuenenWkeit = 0.003
   
   def initialize(bild, wind)
     @wind = wind
@@ -13,10 +15,27 @@ class WuestenErsteller
     @entfernungen = berechneEntfernung(@bild)
     @duenen = Array.new(@entfernungen.length) {Array.new(@entfernungen[0].length) {rand(0) * ZufallsHoehen}}
     glaette(@duenen)
-    4.times do
-      erschaffeDuene(((@entfernungen[0].length - @entfernungen[0].length / 5) * rand(0) + @entfernungen[0].length / 10).round, ((@entfernungen.length  - @entfernungen.length / 5) * rand(0) + @entfernungen.length / 10).round)
+    erstelleDuenen()
+
+  end
+
+  def erstelleDuenen()
+    return if @duenen.length == 0
+    reihenfolge = Array.new(@duenen.length * @duenen[0].length) {|i| i} 
+    reihenfolge.shuffle!
+    reihenfolge.each_with_index do |nummer, index|
+      x = nummer / @duenen.length
+      y = nummer % @duenen.length
+      #puts "#{index} / #{reihenfolge.length}"
+      if @duenen[y][x] <= FreieFelderMaxHoehe and rand(0) <= DuenenWkeit
+        erschaffeDuene(x, y)
+      end
     end
-    glaette(@duenen)
+      
+    #300.times do
+    #  erschaffeDuene(((@entfernungen[0].length - @entfernungen[0].length / 5) * rand(0) + @entfernungen[0].length / 10).round, ((@entfernungen.length  - @entfernungen.length / 5) * rand(0) + @entfernungen.length / 10).round)
+    #end
+    #glaette(@duenen)
     #10.times do |y|
     #  10.times do |x|
     #    erschaffeDuene(((@entfernungen[0].length - 1) / 10 * (x + rand(0))).round, ((@entfernungen.length - 1) / 10 * (y + rand(0))).round)
@@ -60,7 +79,7 @@ class WuestenErsteller
     duenenPunkte = []
     duene.length.times do |y|
       duene[0].length.times do |x|
-        duenenPunkte.push(DuenenPunkt.new(x: x, y: y, hoehe: duene[y][x], wind: @wind)) if duene[y][x] >= Math::tan(Math::PI / 12)
+        duenenPunkte.push(DuenenPunkt.new(x: x, y: y, hoehe: duene[y][x], windGeschwindigkeit: @wind.geschwindigkeit(x, y / 2.0), windRichtung: @wind.richtung(x, y / 2.0))) if duene[y][x] >= Math::tan(Math::PI / 12)
       end
     end
     duenenPunkte.sort!
@@ -75,8 +94,7 @@ class WuestenErsteller
     punkteListe = [duenenPunkt]
     until punkteListe == []
       punkteListe.sort!
-      punkteListe.reverse!
-      punkt = punkteListe.shift
+      punkt = punkteListe.pop
       next if punkt.hoehe < duene[punkt.y][punkt.x]
       #p ["P", punkt.x, punkt.y, duene[punkt.y][punkt.x]]
       verbesserbar = []
@@ -94,7 +112,7 @@ class WuestenErsteller
             #p [[punkt.x, punkt.y], [lokalX, lokalY], duene[lokalY][lokalX], neueHoehe]
             #gets
             duene[lokalY][lokalX] = neueHoehe
-            verbesserbar.push(DuenenPunkt.new(x: lokalX, y: lokalY, hoehe: neueHoehe, wind: @wind))
+            verbesserbar.push(DuenenPunkt.new(x: lokalX, y: lokalY, hoehe: neueHoehe, windGeschwindigkeit: @wind.geschwindigkeit(lokalX, lokalY / 2.0), windRichtung: @wind.richtung(lokalX, lokalY / 2.0)))
           end
         end
       end
