@@ -2,12 +2,12 @@ class DuenenPunkt
   MinHoehendifferenz = Math::tan(Math::PI / 12)
   MaxHoehendifferenz = Math::tan(Math::PI / 6)
   
-  def initialize(x:, y:, hoehe:, windGeschwindigkeit:, windRichtung:)
+  def initialize(x:, y:, hoehe:, windGeschwindigkeiten:, windRichtungen:)
     @x = x
     @y = y
     @hoehe = hoehe
-    @windGeschwindigkeit = windGeschwindigkeit
-    @windRichtung = windRichtung
+    @windGeschwindigkeiten = windGeschwindigkeiten
+    @windRichtungen = windRichtungen
   end
 
   attr_reader :x, :y
@@ -18,12 +18,20 @@ class DuenenPunkt
   end
 
   def berechneHoehe(lokalX, lokalY)
-    skalarprodukt = ((@x - lokalX) * @windRichtung[0] + (@y - lokalY) * @windRichtung[1])
-    faktor = skalarprodukt / ((@x - lokalX) ** 2 + (@y - lokalY) ** 2) ** 0.5
-    verlust = (MinHoehendifferenz * (1 - faktor) / 2 + MaxHoehendifferenz * (1 + faktor) / 2) * ((@x - lokalX) ** 2 + (@y - lokalY) ** 2) ** 0.5
-    if verlust < 0 or verlust > 4.5 * MaxHoehendifferenz
-      p [@wind.richtung(x.round, y.round / 2.0), @wind.vektor(@x.round, @y.round / 2.0), @wind.geschwindigkeit(@x.round, @y.round / 2.0), skalarprodukt, faktor, verlust, [@x, @y], [lokalX, lokalY], ((x - lokalX) ** 2 + (y - lokalY) ** 2) ** 0.5, @hoehe]
-      raise
+    verlust = 5 * MaxHoehendifferenz 
+    @windGeschwindigkeiten.length.times do |i|
+      if @windGeschwindigkeiten[i] != nil
+        skalarprodukt = ((@x - lokalX) * @windRichtung[0] + (@y - lokalY) * @windRichtungen[i][1])
+        faktor = skalarprodukt / ((@x - lokalX) ** 2 + (@y - lokalY) ** 2) ** 0.5
+      else
+        faktor = 1
+      end
+      verlust = [verlust, (MinHoehendifferenz * (1 - faktor) / 2 + MaxHoehendifferenz * (1 + faktor) / 2) * ((@x - lokalX) ** 2 + (@y - lokalY) ** 2) ** 0.5].max
+      if verlust < 0 or verlust > 4.5 * MaxHoehendifferenz
+        p [@windRichtung, @windGeschwindigkeit, faktor, verlust, [@x, @y], [lokalX, lokalY], ((x - lokalX) ** 2 + (y - lokalY) ** 2) ** 0.5, @hoehe]
+        p skalarprodukt
+        raise
+      end
     end
     @hoehe - verlust
   end

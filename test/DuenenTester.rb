@@ -7,7 +7,7 @@ $:.unshift(File.join(File.dirname(__FILE__), '..', 'lib', 'Typen'))
 require "Wind"
 require "WuestenErsteller"
 
-seitenLaenge = 500
+seitenLaenge = 300
 wind = Wind.new(seitenLaenge, seitenLaenge)
 
 png = ChunkyPNG::Image.new(seitenLaenge, seitenLaenge, ChunkyPNG::Color::WHITE)
@@ -21,4 +21,4 @@ wueste.duenen.each_with_index do |zeile, y|
   end
   puts "#{y + 1} von #{seitenLaenge * 2}"
 end
-png2.save('../ausgabe/wueste.png', :interlace => true)
+png2.save('../ausgabe/duenen.png', :interlace => true)

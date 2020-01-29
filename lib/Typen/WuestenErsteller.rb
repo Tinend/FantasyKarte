@@ -4,22 +4,27 @@ require "DuenenPunkt"
 class WuestenErsteller
 
   GlaetteDistanz = 3
-  MaxHoehenFaktor = 20
+  MaxHoehenDivisor = 2.5
   ZufallsHoehen = 2.0
   FreieFelderMaxHoehe = 5
   DuenenWkeit = 0.003
   
-  def initialize(bild, wind)
-    @wind = wind
+  def initialize(bild, primaerWind:, sekundaerWind:)
+    @primaerWind = primaerWind
+    @sekundaerWind = sekundaerWind
     generiereBild(bild)
     @entfernungen = berechneEntfernung(@bild)
-    @duenen = Array.new(@entfernungen.length) {Array.new(@entfernungen[0].length) {rand(0) * ZufallsHoehen}}
+    @duenen = Array.new(@entfernungen.length) {|y| Array.new(@entfernungen[0].length) {|x| rand(0) * ZufallsHoehen * [1, @entfernungen[y][x] * Math::tan(Math::PI / 12) / 10].min}}
     @frei = Array.new(@entfernungen.length) {Array.new(@entfernungen[0].length, true)}
     glaette(@duenen, umkehren: true)
-    erstelleDuenen()
+    erstelleDuenen(wind: @primaerWind)
+    @frei = Array.new(@entfernungen.length) {Array.new(@entfernungen[0].length, true)}
+    glaette(@duenen, umkehren: true)
+    erstelleDuenen(wind: @sekundaerWind)
+    glaette(@duenen, umkehren: true, wind: nil)
   end
 
-  def erstelleDuenen()
+  def erstelleDuenen(wind:)
     return if @duenen.length == 0
     reihenfolge = Array.new(@duenen.length * @duenen[0].length) {|i| i} 
     reihenfolge.shuffle!
@@ -28,10 +33,9 @@ class WuestenErsteller
       y = nummer % @duenen.length
       #puts "#{index} / #{reihenfolge.length}"
       if @frei[y][x] and rand(0) <= DuenenWkeit
-        erschaffeDuene(x, y)
+        erschaffeDuene(x, y, wind: wind)
       end
     end
-    glaette(@duenen, umkehren: true)
     #300.times do
     #  erschaffeDuene(((@entfernungen[0].length - @entfernungen[0].length / 5) * rand(0) + @entfernungen[0].length / 10).round, ((@entfernungen.length  - @entfernungen.length / 5) * rand(0) + @entfernungen.length / 10).round)
     #end
@@ -55,12 +59,11 @@ class WuestenErsteller
     end
   end
     
-  def erschaffeDuene(x, y)
+  def erschaffeDuene(x, y, wind:)
     duene = Array.new(@bild.height) {Array.new(@bild.width, 0)}
-    maxHoehe = @entfernungen[y][x] ** 0.4 * @wind.geschwindigkeit(x.round, y.round / 2.0) / MaxHoehenFaktor
-    maxHoehe *= 3
+    maxHoehe = @entfernungen[y][x] ** 0.4 * wind.geschwindigkeit(x.round, y.round / 2.0) / MaxHoehenDivisor
     alter = rand(0) * (0.5 + rand(0)) / 1.5
-    hoehe = maxHoehe + maxHoehe * rand(0)
+    hoehe = maxHoehe * rand(0)
     laenge = 11 * hoehe + rand(0) * 30 * hoehe
     laenge += rand(0) * 100 * hoehe if rand(2) == 0
     laenge += rand(0) * 120 * hoehe if rand(3) == 0
@@ -68,29 +71,33 @@ class WuestenErsteller
     erstelleDuenenPunkt(x, y, hoehe, duene)
     erstelleArm(x, y, hoehe, maxHoehe, laenge, 1, alter, duene)
     erstelleArm(x, y, hoehe, maxHoehe, laenge, -1, alter, duene)
-    glaette(duene, umkehren: false)
+    glaette(duene, umkehren: false, wind: wind)
     @duenen.each_with_index do |zeile, y|
       zeile.collect!.with_index {|punkt, x| (punkt ** 2 + duene[y][x] ** 2) ** 0.5}
     end
   end
 
-  def glaette(duene, umkehren: false)
+  def glaette(duene, umkehren: false, wind: nil)
     return if duene.length == 0
     duenenPunkte = []
     duene.length.times do |y|
       duene[0].length.times do |x|
-        duenenPunkte.push(DuenenPunkt.new(x: x, y: y, hoehe: duene[y][x], windGeschwindigkeit: @wind.geschwindigkeit(x, y / 2.0), windRichtung: @wind.richtung(x, y / 2.0))) if duene[y][x] >= Math::tan(Math::PI / 12)
+        if wind != nil
+          duenenPunkte.push(DuenenPunkt.new(x: x, y: y, hoehe: duene[y][x], windGeschwindigkeit: wind.geschwindigkeit(x, y / 2.0), windRichtung: wind.richtung(x, y / 2.0))) if duene[y][x] >= Math::tan(Math::PI / 12)
+        else
+          duenenPunkte.push(DuenenPunkt.new(x: x, y: y, hoehe: duene[y][x], windGeschwindigkeit: nil, windRichtung: nil)) if duene[y][x] >= Math::tan(Math::PI / 6)
+        end
       end
     end
     duenenPunkte.sort!
     duenenPunkte.reverse! if umkehren
     duenenPunkte.each_with_index do |duenenPunkt, i|
       #p [i.to_s + " / " + duenenPunkte.length.to_s, duene[duenenPunkt.y][duenenPunkt.x], [duenenPunkt.x, duenenPunkt.y]]
-      glaettePunkt(duenenPunkt, duene)
+      glaettePunkt(duenenPunkt, duene, wind: wind)
     end
   end
 
-  def glaettePunkt(duenenPunkt, duene)
+  def glaettePunkt(duenenPunkt, duene, wind:)
     punkteListe = [duenenPunkt]
     maxHoehe = punkteListe.max.hoehe
     until punkteListe == []
@@ -116,7 +123,11 @@ class WuestenErsteller
             #p [[punkt.x, punkt.y], [lokalX, lokalY], duene[lokalY][lokalX], neueHoehe]
             #gets
             duene[lokalY][lokalX] = neueHoehe
-            verbesserbar.push(DuenenPunkt.new(x: lokalX, y: lokalY, hoehe: neueHoehe, windGeschwindigkeit: @wind.geschwindigkeit(lokalX, lokalY / 2.0), windRichtung: @wind.richtung(lokalX, lokalY / 2.0)))
+            if wind != nil
+              verbesserbar.push(DuenenPunkt.new(x: lokalX, y: lokalY, hoehe: neueHoehe, windGeschwindigkeit: @primaerWind.geschwindigkeit(lokalX, lokalY / 2.0), windRichtung: @primaerWind.richtung(lokalX, lokalY / 2.0)))
+            else
+              verbesserbar.push(DuenenPunkt.new(x: lokalX, y: lokalY, hoehe: neueHoehe, windGeschwindigkeit: nil, windRichtung: nil))
+            end
           end
         end
       end
@@ -126,10 +137,10 @@ class WuestenErsteller
   
   def erstelleArm(x, y, hoehe, maxHoehe, laenge, orientierung, alter, duene)
     laenge.round.times do |i|
-      vektor = @wind.senkrecht(x, y / 2.0, orientierung)
-      #vektor = @wind.wind[y.round][x.round].senkrecht(orientierung)
-      #vektor = vektor.zip(@wind.wind[y.round][x.round].vektor).map {|element| element[0] * (1 - i * alter / laenge.to_f) + i * alter / laenge.to_f * element[1]}
-      vektor = vektor.zip(@wind.vektor(x.round, y.round / 2.0)).map {|element| element[0] * (1 - i * alter / laenge.to_f) + i * alter / laenge.to_f * element[1]}
+      vektor = @primaerWind.senkrecht(x, y / 2.0, orientierung)
+      #vektor = @primaerWind.wind[y.round][x.round].senkrecht(orientierung)
+      #vektor = vektor.zip(@primaerWind.wind[y.round][x.round].vektor).map {|element| element[0] * (1 - i * alter / laenge.to_f) + i * alter / laenge.to_f * element[1]}
+      vektor = vektor.zip(@primaerWind.vektor(x.round, y.round / 2.0)).map {|element| element[0] * (1 - i * alter / laenge.to_f) + i * alter / laenge.to_f * element[1]}
       x += vektor[0] / (vektor[0] ** 2 + vektor[1] ** 2) ** 0.5 / 8
       y += vektor[1] / (vektor[0] ** 2 + vektor[1] ** 2) ** 0.5 / 8
       return if x.round < 0 or y.round < 0 or y.round >= @duenen.length or x.round >= @duenen[0].length
@@ -146,8 +157,6 @@ class WuestenErsteller
     hoehe = [hoehe, (hoehe * (@entfernungen[y.round][x.round] * Math::tan(Math::PI / 12)) / 2) ** 0.5].min
     besetzePunkte(x.round, y.round, hoehe)
     duene[y.round][x.round] = [duene[y.round][x.round], hoehe].max
-    #vorwaertsErstellen(x, y, hoehe, duene)
-    #rueckwaertsErstellen(x, y, hoehe, duene)
   end
 
   def besetzePunkte(x, y, hoehe)
@@ -167,40 +176,29 @@ class WuestenErsteller
       end
     end
   end
-  
-  def vorwaertsErstellen(x, y, hoehe, duene)
-    return if x.round < 0 or y.round < 0 or y.round >= @duenen.length or x.round >= @duenen[0].length
-    100.times do
-      richtung = @wind.richtung(x.round, y.round / 2.0)
-      xAlt = x
-      yAlt = y
-      x += richtung[0] * 0.5
-      y += richtung[0] * 0.5
-      hoehe -= 3 ** -0.5 if xAlt != x or yAlt != y
-      return if hoehe < 0
-      return if x.round < 0 or y.round < 0 or y.round >= @duenen.length or x.round >= @duenen[0].length
-      duene[y.round][x.round] = [duene[y.round][x.round], hoehe].max
+
+  def findeY(x:, kartenY:)
+    y = kartenY * 2
+    until y == @duenen.length - 1 or (y - kartenY * 2) * Math::tan(Math::PI / 6) >= @duenen[y][x]
+      y += 1
     end
-    vektor = @wind.senkrecht(x.round, y.round / 2.0, 1)
-    vorwaertsErstellen(x + vektor[0] / (vektor[0] ** 2 + vektor[1] ** 2) ** 0.5 / 3, y + vektor[1] / (vektor[0] ** 2 + vektor[1] ** 2) ** 0.5 / 3, hoehe, duene)
-    vorwaertsErstellen(x - vektor[0] / (vektor[0] ** 2 + vektor[1] ** 2) ** 0.5 / 3, y - vektor[1] / (vektor[0] ** 2 + vektor[1] ** 2) ** 0.5 / 3, hoehe, duene)
+    y -= 1 if (y - kartenY * 2) * Math::tan(Math::PI / 6) >= @duenen[y][x]
+    y
+  end
+
+  def berechneHelligkeitRechtsRunter(x:, y:)
+    scheinbareHoehe = Math::cos(Math::PI / 4 - Math::atan((@duenen[y][x] - @duenen[y + 1][x + 1]) / 2 **0.5))
+    scheinbareBreite = Math::cos(Math::atan((@duenen[y][x] - @duenen[y + 1][x + 1]) / 2 **0.5))
+    return scheinbareHoehe * scheinbareBreite * 256
   end
   
-  def rueckwaertsErstellen(x, y, hoehe, duene)
-    return if x.round < 0 or y.round < 0 or y.round >= @duenen.length or x.round >= @duenen[0].length
-    100.times do
-      richtung = @wind.richtung(x.round, y.round / 2.0)
-      xAlt = x
-      yAlt = y
-      x -= richtung[0] * 0.5
-      y -= richtung[0] * 0.5
-      hoehe -= 0.27 if xAlt != x or yAlt != y
-      return if hoehe < 0
-      return if x.round < 0 or y.round < 0 or y.round >= @duenen.length or x.round >= @duenen[0].length
-      duene[y.round][x.round] = [duenen[y.round][x.round], hoehe].max
-    end
-    vektor = @wind.senkrecht(x.round, y.round / 2.0, 1)
-    rueckwaertsErstellen(x + vektor[0] / (vektor[0] ** 2 + vektor[1] ** 2) ** 0.5 / 3, y + vektor[1] / (vektor[0] ** 2 + vektor[1] ** 2) ** 0.5 / 3, hoehe, duene)
-    rueckwaertsErstellen(x - vektor[0] / (vektor[0] ** 2 + vektor[1] ** 2) ** 0.5 / 3, y - vektor[1] / (vektor[0] ** 2 + vektor[1] ** 2) ** 0.5 / 3, hoehe, duene)
+  def berechneHelligkeitAnKoordinate(x:, kartenY:)
+    y = findeY(x: x, kartenY: kartenY)
+    farben = []
+    farben.push(berechneHelligkeitRechtsRunter(x: x - 1, y: y - 1)) if x > 0 and y > 0
+    farben.push(berechneHelligkeitRechtsRunter(x: x - 1, y: y)) if x > 0 and y < @duenen.length - 1
+    farben.push(berechneHelligkeitRechtsRunter(x: x, y: y - 1)) if x < @duenen[0].length - 1 and y > 0
+    farben.push(berechneHelligkeitRechtsRunter(x: x, y: y)) if x < @duenen[0].length - 1 and y < @duenen.length - 1
+    return (farben.reduce(:+) / farben.length).round
   end
 end

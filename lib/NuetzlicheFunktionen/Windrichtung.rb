@@ -1,13 +1,15 @@
 class Windrichtung
-  def initialize()
-    @vektor = [0.2,0]
+  def initialize(grundGeschwindigkeit:)
+    @grundGeschwindigkeit = grundGeschwindigkeit
+    #@vektor = [0.2 * @grundGeschwindigkeit,0]
+    @vektor = [0,0]
   end
 
   attr_reader :vektor
   
   def windVektorErhalten(winkel)
-    @vektor[0] += Math::sin(winkel)
-    @vektor[1] += Math::cos(winkel)
+    @vektor[0] += Math::sin(winkel) * @grundGeschwindigkeit
+    @vektor[1] += Math::cos(winkel) * @grundGeschwindigkeit
   end
 
   def richtung()

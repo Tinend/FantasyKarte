@@ -5,13 +5,15 @@ class Wind
   WindWienerAbstand = 3
   WindWinkelDivisor = 500
   WindZahl = 5
-  def initialize(breite, hoehe)
-    @wind = Array.new(hoehe * 2) {Array.new(breite) {Windrichtung.new()}}
+  #FallKonstante = 0.6
+  FallKonstante = 0.8
+  def initialize(breite, hoehe, geschwindigkeit: 1)
+    @wind = Array.new(hoehe * 2) {Array.new(breite) {Windrichtung.new(grundGeschwindigkeit: geschwindigkeit)}}
     zweiDWienerProzess = ZweiDWienerProzess.new()
     WindZahl.times do |i|
       zufallsWinkel = rand(0) * Math::PI
       #wiener = zweiDWienerProzess.erstelleZweiDWienerProzess(breite, hoehe, WindWienerAbstand)
-      wiener = definiereNeigungen(breite, hoehe * 2 - 1, 0.6)
+      wiener = definiereNeigungen(breite, hoehe * 2 - 1, FallKonstante)
       @wind.zip(wiener).each do |ww|
         ww[0].zip(ww[1]).each do |windRichtung|
           #windRichtung[0].windRichtungErhalten(windRichtung[1] / WindWinkelDivisor)

@@ -8,8 +8,8 @@ require "Wind"
 seitenLaenge = 900
 wind = Wind.new(seitenLaenge, seitenLaenge)
 
-png = ChunkyPNG::Image.new(seitenLaenge, seitenLaenge, ChunkyPNG::Color::WHITE)
-png2 = ChunkyPNG::Image.new(seitenLaenge, seitenLaenge, ChunkyPNG::Color::WHITE)
+png = ChunkyPNG::Image.new(seitenLaenge, seitenLaenge * 2, ChunkyPNG::Color::WHITE)
+png2 = ChunkyPNG::Image.new(seitenLaenge, seitenLaenge * 2, ChunkyPNG::Color::WHITE)
 wind.wind.each_with_index do |zeile, y|
   zeile.each_with_index do |windrichtung, x|
     r = [[(windrichtung.vektor[0] * 32).round + 128, 0].max, 255].min
@@ -21,13 +21,13 @@ wind.wind.each_with_index do |zeile, y|
       9.times do |i|
         posx = x + i * windrichtung.vektor[0] * 0.3
         posy = y + i * windrichtung.vektor[1] * 0.3
-        if posx >= 0 and posy >= 0 and posx.round < seitenLaenge and posy.round < seitenLaenge
+        if posx >= 0 and posy >= 0 and posx.round < seitenLaenge and posy.round < seitenLaenge * 2
           png2[posx.round, posy.round] = farbe
         end
       end
     end
   end
-  puts "#{y + 1} von #{seitenLaenge}"
+  puts "#{y + 1} von #{seitenLaenge * 2}"
 end
 png.save('../ausgabe/wind.png', :interlace => true)
 png2.save('../ausgabe/wind2.png', :interlace => true)
