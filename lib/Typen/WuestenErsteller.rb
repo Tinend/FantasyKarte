@@ -9,11 +9,12 @@ class WuestenErsteller
   ZufallsHoehen = 0.02
   MinHoehe = 0.0001
   FreieFelderMaxHoehe = 5
-  DuenenWkeit = 0.003
+  DuenenWkeit = 0.3
   HoehenZielZerfall = 0.8
   HoehenZerfall = 0.92
-  DuenenEndWkeit = 2#0.01
-  DuenenAbstand = 1.5
+  DuenenEndWkeit = 0.01
+  HoehenDuenenAbstand = 2.5
+  MaxHoehenDuenenAbstand = 0.15
   RandBreite = 2.5
   MaxGroesseRandPlatz = 8
   
@@ -25,9 +26,9 @@ class WuestenErsteller
     @duenen = Array.new(@entfernungen.length) {|y| Array.new(@entfernungen[0].length) {|x| rand(0) * ZufallsHoehen * [1, @entfernungen[y][x] * Math::tan(Math::PI / 12) / 10].min}}
     glaette(@duenen, umkehren: true)
     erstelleDuenen(wind: @primaerWind, maxHoehenFaktor: MaxHoehenFaktor1)
-    #erstelleDuenen(wind: @primaerWind, maxHoehenFaktor: MaxHoehenFaktor2)
+    erstelleDuenen(wind: @primaerWind, maxHoehenFaktor: MaxHoehenFaktor2)
     erstelleDuenen(wind: @sekundaerWind, maxHoehenFaktor: MaxHoehenFaktor1)
-    #erstelleDuenen(wind: @sekundaerWind, maxHoehenFaktor: MaxHoehenFaktor2)
+    erstelleDuenen(wind: @sekundaerWind, maxHoehenFaktor: MaxHoehenFaktor2)
     glaette(@duenen, umkehren: true)
   end
 
@@ -122,10 +123,10 @@ class WuestenErsteller
     end
     punkte = [[x.round, y.round]]
     erstelleDuenenPunkt(x, y, hoehe, duene)
-    punkte += erstelleArm(x, y, hoehe, hoehenZiel, 1, alter, duene, maxHoehenFaktor: maxHoehenFaktor)
-    punkte += erstelleArm(x, y, hoehe, 2 * hoehe - hoehenZiel, -1, alter, duene, maxHoehenFaktor: maxHoehenFaktor)
+    punkte += erstelleArm(x, y, hoehe, hoehenZiel, 1, alter, duene, maxHoehenFaktor: maxHoehenFaktor, wind: wind)
+    punkte += erstelleArm(x, y, hoehe, 2 * hoehe - hoehenZiel, -1, alter, duene, maxHoehenFaktor: maxHoehenFaktor, wind: wind)
     punkte.each do |punkt|
-      besetzePunkte(punkt[0], punkt[1], @duenen[punkt[1]][punkt[0]])
+      besetzePunkte(punkt[0], punkt[1], @duenen[punkt[1]][punkt[0]], maxHoehenFaktor: maxHoehenFaktor)
     end
     glaette(duene, umkehren: false)
     @duenen.each_with_index do |zeile, y|
@@ -148,32 +149,32 @@ class WuestenErsteller
     
   def berechneMaxHoehe(x, y, maxHoehenFaktor:)
     return 0 if @entfernungen[y][x] <= RandBreite
-    (1 - MaxGroesseRandPlatz * maxHoehenFaktor) / (MaxGroesseRandPlatz * maxHoehenFaktor - RandBreite + @entfernungen[y][x]) * @primaerWind.geschwindigkeit(x.round, y.round / 2.0) * maxHoehenFaktor
+    (1 - MaxGroesseRandPlatz * maxHoehenFaktor / (MaxGroesseRandPlatz * maxHoehenFaktor - RandBreite + @entfernungen[y][x])) * @primaerWind.geschwindigkeit(x.round, y.round / 2.0) * maxHoehenFaktor
   end
   
-  def erstelleArm(x, y, hoehe, hoehenZiel, orientierung, alter, duene, maxHoehenFaktor:)
+  def erstelleArm(x, y, hoehe, hoehenZiel, orientierung, alter, duene, maxHoehenFaktor:, wind:)
     punkte = []
     until hoehe < MinHoehe or hoehe ** 0.5 * rand(0) < DuenenEndWkeit
-      vektor = @primaerWind.senkrecht(x, y / 2.0, orientierung)
-      vektor = vektor.zip(@primaerWind.vektor(x.round, y.round / 2.0)).map {|element| element[0]} # Alter nicht vergessen!
+      vektor = wind.senkrecht(x, y / 2.0, orientierung)
+      vektor = vektor.zip(wind.vektor(x.round, y.round / 2.0)).map {|element| element[0]} # Alter nicht vergessen!
       x += vektor[0] / (vektor[0] ** 2 + vektor[1] ** 2) ** 0.5 / 8
       y += vektor[1] / (vektor[0] ** 2 + vektor[1] ** 2) ** 0.5 / 8
       return punkte if x.round < 0 or y.round < 0 or y.round >= @duenen.length or x.round >= @duenen[0].length
-      return punkte + erstelleDuenenEnde(x, y, hoehe, hoehenZiel, orientierung, alter, duene, maxHoehenFaktor: maxHoehenFaktor) unless @frei[y][x]
+      return punkte + erstelleDuenenEnde(x, y, hoehe, hoehenZiel, orientierung, alter, duene, maxHoehenFaktor: maxHoehenFaktor, wind: wind) unless @frei[y][x]
       erstelleDuenenPunkt(x, y, hoehe, duene)
       punkte.push([x.round, y.round])
       hoehenZiel = updateHoehenZiel(x.round, y.round, hoehenZiel, maxHoehenFaktor: maxHoehenFaktor)
       hoehe = updateHoehe(x, y, hoehe, hoehenZiel, maxHoehenFaktor: maxHoehenFaktor)
     end
-    punkte + erstelleDuenenEnde(x, y, hoehe, hoehenZiel, orientierung, alter, duene, maxHoehenFaktor: maxHoehenFaktor)
+    punkte + erstelleDuenenEnde(x, y, hoehe, hoehenZiel, orientierung, alter, duene, maxHoehenFaktor: maxHoehenFaktor, wind: wind)
   end
 
-  def erstelleDuenenEnde(x, y, hoehe, hoehenZiel, orientierung, alter, duene, maxHoehenFaktor:)
+  def erstelleDuenenEnde(x, y, hoehe, hoehenZiel, orientierung, alter, duene, maxHoehenFaktor:, wind:)
     punkte = []
     laenge = (4 * rand(0) + 1) / Math::tan(Math::PI / 12) * hoehe * 8
     laenge.to_i.times do |i|
-      vektor = @primaerWind.senkrecht(x, y / 2.0, orientierung)
-      vektor = vektor.zip(@primaerWind.vektor(x.round, y.round / 2.0)).map {|element| element[0] * (1 - i * alter / laenge.to_f) + i * alter / laenge.to_f * element[1]}
+      vektor = wind.senkrecht(x, y / 2.0, orientierung)
+      vektor = vektor.zip(wind.vektor(x.round, y.round / 2.0)).map {|element| element[0] * (1 - i * alter / laenge.to_f) + i * alter / laenge.to_f * element[1]}
       x += vektor[0] / (vektor[0] ** 2 + vektor[1] ** 2) ** 0.5 / 8
       y += vektor[1] / (vektor[0] ** 2 + vektor[1] ** 2) ** 0.5 / 8
       return punkte if x.round < 0 or y.round < 0 or y.round >= @duenen.length or x.round >= @duenen[0].length
@@ -197,8 +198,8 @@ class WuestenErsteller
     duene[y.round][x.round] = [duene[y.round][x.round], hoehe].max
   end
 
-  def besetzePunkte(x, y, hoehe)
-    radius = hoehe * DuenenAbstand * (1 / Math::tan(Math::PI / 12) + 1 / Math::tan(Math::PI / 6))
+  def besetzePunkte(x, y, hoehe, maxHoehenFaktor:)
+    radius = (hoehe * HoehenDuenenAbstand + berechneMaxHoehe(x, y, maxHoehenFaktor: maxHoehenFaktor) * MaxHoehenDuenenAbstand) * (1 / Math::tan(Math::PI / 12) + 1 / Math::tan(Math::PI / 6))
     minY = [0, y - radius.to_i].max
     maxY = [@frei.length - 1, y + radius.to_i].min
     (maxY - minY + 1).times do |plusY|
