@@ -21,7 +21,7 @@ class DuenenPunkt
   def berechneHoehe(lokalX, lokalY)
     verlust = 5 * MaxHoehendifferenz 
     @windGeschwindigkeiten.length.times do |i|
-      next if @windGeschwindigkeiten[i] != @maxGeschwindigkeit and @windGeschwindigkeiten[i] * WuestenErsteller::MaxHoehenFaktor < @hoehe * 2
+      next if @windGeschwindigkeiten[i] != @maxGeschwindigkeit and @windGeschwindigkeiten[i] * WuestenErsteller::MaxHoehenFaktor2 < @hoehe * 2
       if @windGeschwindigkeiten[i] != nil
         skalarprodukt = ((@x - lokalX) * @windRichtungen[i][0] + (@y - lokalY) * @windRichtungen[i][1])
         faktor = skalarprodukt / ((@x - lokalX) ** 2 + (@y - lokalY) ** 2) ** 0.5
