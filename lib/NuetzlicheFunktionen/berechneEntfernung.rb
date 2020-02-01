@@ -1,7 +1,7 @@
 # coding: utf-8
 require "RandPixel"
 
-def berechneEntfernung(bild)# berechnet für jeden Pixel, wie weit er von Transparenten Pixeln entfernt ist
+def berechneEntfernung(bild)# berechnet für jeden Pixel, wie weit er von Transparenten Pixeln oder dem Rand entfernt ist
   richtungen = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]]
   distanz = 0
   randPixel = []

@@ -25,8 +25,8 @@ class GrasTyp < Typ
   def erstelleHintergrund(hintergrund)
     erwartungswert = schaetzeErwartungswert(@neigungen.reduce(:+))
     varianz = schaetzeVarianz(@neigungen.reduce(:+), 0)
-    p ["X", erwartungswert, 0]
-    p [varianz, schaetzeVarianz(@neigungen.reduce(:+), erwartungswert)]
+    #p ["X", erwartungswert, 0]
+    #p [varianz, schaetzeVarianz(@neigungen.reduce(:+), erwartungswert)]
     @hintergrund.height.times do |y|
       @hintergrund.width.times do |x|
         if @hintergrund[x, y] != ChunkyPNG::Color::TRANSPARENT

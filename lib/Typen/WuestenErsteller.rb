@@ -27,13 +27,15 @@ class WuestenErsteller
     glaette(@duenen, umkehren: true)
     erstelleDuenen(wind: @primaerWind, maxHoehenFaktor: MaxHoehenFaktor1)
     erstelleDuenen(wind: @primaerWind, maxHoehenFaktor: MaxHoehenFaktor2)
-    erstelleDuenen(wind: @sekundaerWind, maxHoehenFaktor: MaxHoehenFaktor1)
-    erstelleDuenen(wind: @sekundaerWind, maxHoehenFaktor: MaxHoehenFaktor2)
+    #erstelleDuenen(wind: @sekundaerWind, maxHoehenFaktor: MaxHoehenFaktor1)
+    #erstelleDuenen(wind: @sekundaerWind, maxHoehenFaktor: MaxHoehenFaktor2)
     glaette(@duenen, umkehren: true)
   end
+  
+  attr_reader :duenen, :bild
 
   def generiereBild(bild)
-    @bild = ChunkyPNG::Image.new(bild.width, bild.height * 2, ChunkyPNG::Color::WHITE)
+    @bild = ChunkyPNG::Image.new(bild.width, bild.height * 2, ChunkyPNG::Color::TRANSPARENT)
     bild.height.times do |y|
       bild.width.times do |x|
         @bild[x, y * 2] = bild[x, y]
@@ -108,8 +110,6 @@ class WuestenErsteller
       end
     end
   end
-
-  attr_reader :duenen
 
   def erschaffeDuene(x, y, wind:, maxHoehenFaktor:)
     duene = Array.new(@bild.height) {Array.new(@bild.width, 0)}

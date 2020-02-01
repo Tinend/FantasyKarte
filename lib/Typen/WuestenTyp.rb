@@ -1,5 +1,6 @@
 require "Kaktus"
 require "Typ"
+require "WuestenErsteller"
 
 class WuestenTyp < Typ
   HorizontalerAbstandFaktor = 1.2
@@ -10,8 +11,10 @@ class WuestenTyp < Typ
   DarfFaerbenNummern = [0, 11, 12, 13, 14, 15, 16, 17, 18, 19, 51, 52, 53, 54, 55, 56, 57, 58, 59, 71, 72, 73, 74, 75, 76, 77, 78, 79, 254]
   MindestAbstand = -1
 
-  def initialize(breite, hoehe)
+  def initialize(breite, hoehe, primaerWind: @primaerWind, sekundaerWind: @sekundaerWind)
     super(breite, hoehe)
+    @primaerWind = primaerWind
+    @sekundaerWind = sekundaerWind
     #@sinusKonstante1 = 15.0 + rand(10)
     @sinusKonstante1 = 24.0
     @sinusKonstante2 = Math::PI * 0.4 * rand(0) + 0.1 * Math::PI
@@ -25,29 +28,23 @@ class WuestenTyp < Typ
     false
   end
 
+  def macheTerrain(datenFarbe, x, y)
+  end
+
   def erstelleHintergrund(hintergrund)
-    p [@sinusKonstante1, @sinusKonstante2, @sinusKonstante3, @sinusKonstante4, @sinusKonstante5]
-    @hintergrund.height.times do |y|
-      @hintergrund.width.times do |x|
+    @wuestenErsteller = WuestenErsteller.new(@hintergrund, primaerWind: @primaerWind, sekundaerWind: @sekundaerWind)
+    hintergrund.height.times do |y|
+      hintergrund.width.times do |x|
         if @hintergrund[x, y] != ChunkyPNG::Color::TRANSPARENT
-          if rand(16) == 0
-            grau = rand(50) + 170
-          else
-            grau = rand(20) + 200
-          end
-          grau -= berechneDuenenFarbe(x, y)
-          #grau = duenenFarbe * 4
-          farbe = ChunkyPNG::Color.rgb(grau, grau, grau)
-          hintergrund[x, y] = farbe if x >= 0 and x < @hintergrund.width and y >= 0 and y < @hintergrund.height and @hintergrund[x, y] != ChunkyPNG::Color::TRANSPARENT
-          if rand(300) == 0
-            #erstelleStein(hintergrund, x, y)@sinusKonstante1 = 15.0 + rand(10)
-          end
+          grau = @wuestenErsteller.berechneHelligkeitAnKoordinate(x: x, kartenY: y)
+          hintergrund[x, y] = ChunkyPNG::Color.rgb(grau, grau, grau)
         end
       end
     end
   end
 
   def berechneDuenenFarbe(x, y)
+    raise
     winkel = (y / @sinusKonstante1 + @sinusKonstante2 * Math::cos(x / @sinusKonstante3 + @sinusKonstante4 * Math::cos(y / @sinusKonstante5))) + 1000 * Math::PI
     wert = Math::sin(x / @wertKonstante1) + 0.3
     wert = [[0.0, wert].max, 1.0].min
@@ -56,6 +53,7 @@ class WuestenTyp < Typ
   end
 
   def quadratSinus(winkel, wert)
+    raise
     if (winkel / (Math::PI / 2)).to_i % 2 == 0
       return 1 - Math::sin(winkel % Math::PI * wert + (1 - wert) * Math::PI / 2)
     else
@@ -64,6 +62,7 @@ class WuestenTyp < Typ
   end
   
   def erstelleStein(hintergrund, x, y)
+    raise
     if rand(10) == 0
       stein = [[x, y]]
     elsif rand(5) == 0

@@ -4,20 +4,27 @@ require "WasserTyp"
 require "GrasTyp"
 require "WuestenTyp"
 require "TerrainVerwalter"
+require "Wind"
 
 class KartenErzeuger
+
+  PrimaerWindgeschwindigkeit = 1
+  SekundaerWindgeschwindigkeit = 0.3
+  
   def initialize(datenBild)
     @datenBild = datenBild
     @hintergrund = ChunkyPNG::Image.new(@datenBild.width, @datenBild.height, ChunkyPNG::Color::WHITE)
     @mittelgrund = ChunkyPNG::Image.new(@datenBild.width, @datenBild.height, ChunkyPNG::Color::TRANSPARENT)
     @vordergrund = ChunkyPNG::Image.new(@datenBild.width, @datenBild.height, ChunkyPNG::Color::TRANSPARENT)
     @schriftgrund = ChunkyPNG::Image.new(@datenBild.width, @datenBild.height, ChunkyPNG::Color::TRANSPARENT)
+    @primaerWind = Wind.new(@datenBild.width, @datenBild.height, geschwindigkeit: PrimaerWindgeschwindigkeit)
+    @sekundaerWind = Wind.new(@datenBild.width, @datenBild.height, geschwindigkeit: SekundaerWindgeschwindigkeit)
     @terrainVerwalter = [
       TerrainVerwalter.new(BaumTyp.new(@datenBild.width, @datenBild.height), @hintergrund, @mittelgrund, @vordergrund, @datenBild),
       TerrainVerwalter.new(BergTyp.new(@datenBild.width, @datenBild.height), @hintergrund, @mittelgrund, @vordergrund, @datenBild),
       TerrainVerwalter.new(WasserTyp.new(@datenBild.width, @datenBild.height), @hintergrund, @mittelgrund, @vordergrund, @datenBild),
       TerrainVerwalter.new(GrasTyp.new(@datenBild.width, @datenBild.height), @hintergrund, @mittelgrund, @vordergrund, @datenBild),
-      TerrainVerwalter.new(WuestenTyp.new(@datenBild.width, @datenBild.height), @hintergrund, @mittelgrund, @vordergrund, @datenBild)
+      TerrainVerwalter.new(WuestenTyp.new(@datenBild.width, @datenBild.height, primaerWind: @primaerWind, sekundaerWind: @sekundaerWind), @hintergrund, @mittelgrund, @vordergrund, @datenBild)
     ]
   end
 
