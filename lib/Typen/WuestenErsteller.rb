@@ -17,18 +17,16 @@ class WuestenErsteller
   MaxHoehenDuenenAbstand = 0.15
   RandBreite = 2.5
   MaxGroesseRandPlatz = 8
+  MaxHoeheErreichen = 100
   
-  def initialize(bild, primaerWind:, sekundaerWind:)
-    @primaerWind = primaerWind
-    @sekundaerWind = sekundaerWind
+  def initialize(bild, wind:)
+    @wind = wind
     generiereBild(bild)
     @entfernungen = berechneEntfernung(@bild)
     @duenen = Array.new(@entfernungen.length) {|y| Array.new(@entfernungen[0].length) {|x| rand(0) * ZufallsHoehen * [1, @entfernungen[y][x] * Math::tan(Math::PI / 12) / 10].min}}
     glaette(@duenen, umkehren: true)
-    erstelleDuenen(wind: @primaerWind, maxHoehenFaktor: MaxHoehenFaktor1)
-    erstelleDuenen(wind: @primaerWind, maxHoehenFaktor: MaxHoehenFaktor2)
-    #erstelleDuenen(wind: @sekundaerWind, maxHoehenFaktor: MaxHoehenFaktor1)
-    #erstelleDuenen(wind: @sekundaerWind, maxHoehenFaktor: MaxHoehenFaktor2)
+    erstelleDuenen(wind: @wind, maxHoehenFaktor: MaxHoehenFaktor1)
+    erstelleDuenen(wind: @wind, maxHoehenFaktor: MaxHoehenFaktor2)
     glaette(@duenen, umkehren: true)
   end
   
@@ -49,7 +47,7 @@ class WuestenErsteller
     duenenPunkte = []
     duene.length.times do |y|
       duene[0].length.times do |x|
-        duenenPunkte.push(DuenenPunkt.new(x: x, y: y, hoehe: duene[y][x], windGeschwindigkeiten: [@primaerWind.geschwindigkeit(x, y / 2.0), @sekundaerWind.geschwindigkeit(x, y / 2.0)], windRichtungen: [@primaerWind.richtung(x, y / 2.0), @sekundaerWind.richtung(x, y / 2.0)])) if duene[y][x] >= Math::tan(Math::PI / 12)
+        duenenPunkte.push(DuenenPunkt.new(x: x, y: y, hoehe: duene[y][x], windGeschwindigkeit: @wind.geschwindigkeit(x, y / 2.0), windRichtung: @wind.richtung(x, y / 2.0))) if duene[y][x] >= Math::tan(Math::PI / 12)
       end
     end
     duenenPunkte.sort!
@@ -83,7 +81,7 @@ class WuestenErsteller
           neueHoehe = punkt.berechneHoehe(lokalX, lokalY)
           if duene[lokalY][lokalX] < neueHoehe
             duene[lokalY][lokalX] = neueHoehe
-            verbesserbar.push(DuenenPunkt.new(x: lokalX, y: lokalY, hoehe: neueHoehe, windGeschwindigkeiten: [@primaerWind.geschwindigkeit(lokalX, lokalY / 2.0), @sekundaerWind.geschwindigkeit(lokalX, lokalY / 2.0)], windRichtungen: [@primaerWind.richtung(lokalX, lokalY / 2.0), @sekundaerWind.richtung(lokalX, lokalY / 2.0)]))
+            verbesserbar.push(DuenenPunkt.new(x: lokalX, y: lokalY, hoehe: neueHoehe, windGeschwindigkeit: @wind.geschwindigkeit(lokalX, lokalY / 2.0), windRichtung: @wind.richtung(lokalX, lokalY / 2.0)))
           end
         end
       end
@@ -149,14 +147,14 @@ class WuestenErsteller
     
   def berechneMaxHoehe(x, y, maxHoehenFaktor:)
     return 0 if @entfernungen[y][x] <= RandBreite
-    (1 - MaxGroesseRandPlatz * maxHoehenFaktor / (MaxGroesseRandPlatz * maxHoehenFaktor - RandBreite + @entfernungen[y][x])) * @primaerWind.geschwindigkeit(x.round, y.round / 2.0) * maxHoehenFaktor
+    (1 - MaxGroesseRandPlatz * maxHoehenFaktor / (MaxGroesseRandPlatz * maxHoehenFaktor - RandBreite + @entfernungen[y][x])) * @wind.geschwindigkeit(x.round, y.round / 2.0) * maxHoehenFaktor
   end
   
   def erstelleArm(x, y, hoehe, hoehenZiel, orientierung, alter, duene, maxHoehenFaktor:, wind:)
     punkte = []
     until hoehe < MinHoehe or hoehe ** 0.5 * rand(0) < DuenenEndWkeit
       vektor = wind.senkrecht(x, y / 2.0, orientierung)
-      vektor = vektor.zip(wind.vektor(x.round, y.round / 2.0)).map {|element| element[0]} # Alter nicht vergessen!
+      vektor = vektor.zip(wind.vektor(x.round, y.round / 2.0)).map {|element| element[0]}
       x += vektor[0] / (vektor[0] ** 2 + vektor[1] ** 2) ** 0.5 / 8
       y += vektor[1] / (vektor[0] ** 2 + vektor[1] ** 2) ** 0.5 / 8
       return punkte if x.round < 0 or y.round < 0 or y.round >= @duenen.length or x.round >= @duenen[0].length

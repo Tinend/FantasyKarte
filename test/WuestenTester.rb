@@ -8,12 +8,11 @@ require "Wind"
 require "WuestenErsteller"
 
 seitenLaenge = 300
-primaerWind = Wind.new(seitenLaenge, seitenLaenge, geschwindigkeit: 1)
-sekundaerWind = Wind.new(seitenLaenge, seitenLaenge, geschwindigkeit: 0.3)
+wind = Wind.new(seitenLaenge, seitenLaenge, geschwindigkeit: 1)
 
 png = ChunkyPNG::Image.new(seitenLaenge, seitenLaenge, ChunkyPNG::Color::WHITE)
 
-wueste = WuestenErsteller.new(png, primaerWind: primaerWind, sekundaerWind: sekundaerWind)
+wueste = WuestenErsteller.new(png, wind: wind)
 seitenLaenge.times do |y|
   seitenLaenge.times do |x|
     grau = wueste.berechneHelligkeitAnKoordinate(x: x, kartenY: y)
