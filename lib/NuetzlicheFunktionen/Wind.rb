@@ -40,31 +40,31 @@ class Wind
 
   def senkrecht(x, y, orientierung)
     y = (y * 2).to_i
-    array = [wind[y][x].senkrecht(orientierung)] * 4
-    array += [wind[y][x - 1].senkrecht(orientierung)] if x > 0
-    array += [wind[y][x + 1].senkrecht(orientierung)] if wind.length > 0 and x < wind[0].length - 1
-    array += [wind[y - 1][x].senkrecht(orientierung)] if y > 0
-    array += [wind[y + 1][x].senkrecht(orientierung)] if y < wind.length - 1
+    array = [@wind[y][x].senkrecht(orientierung)] * 4
+    array += [@wind[y][x - 1].senkrecht(orientierung)] if x > 0
+    array += [@wind[y][x + 1].senkrecht(orientierung)] if @wind.length > 0 and x < @wind[0].length - 1
+    array += [@wind[y - 1][x].senkrecht(orientierung)] if y > 0
+    array += [@wind[y + 1][x].senkrecht(orientierung)] if y < @wind.length - 1
     array.reduce([0, 0]) {|e, f| e.zip(f).map { |a, b| a + b / array.length}}
   end
   
   def vektor(x, y)
     y = (y * 2).to_i
-    array = [wind[y][x].vektor] * 4
-    array += [wind[y][x - 1].vektor] if x > 0
-    array += [wind[y][x + 1].vektor] if wind.length > 0 and x < wind[0].length - 1
-    array += [wind[y - 1][x].vektor] if y > 0
-    array += [wind[y + 1][x].vektor] if y < wind.length - 1
+    array = [@wind[y][x].vektor] * 4
+    array += [@wind[y][x - 1].vektor] if x > 0
+    array += [@wind[y][x + 1].vektor] if @wind.length > 0 and x < @wind[0].length - 1
+    array += [@wind[y - 1][x].vektor] if y > 0
+    array += [@wind[y + 1][x].vektor] if y < @wind.length - 1
     array.reduce([0, 0]) {|e, f| e.zip(f).map { |a, b| a + b / array.length}}
   end
   
   def richtung(x, y)
     y = (y * 2).to_i
-    array = [wind[y][x].vektor] * 4
-    array += [wind[y][x - 1].vektor] if x > 0
-    array += [wind[y][x + 1].vektor] if wind.length > 0 and x < wind[0].length - 1
-    array += [wind[y - 1][x].vektor] if y > 0
-    array += [wind[y + 1][x].vektor] if y < wind.length - 1
+    array = [@wind[y][x].vektor] * 4
+    array += [@wind[y][x - 1].vektor] if x > 0
+    array += [@wind[y][x + 1].vektor] if @wind.length > 0 and x < @wind[0].length - 1
+    array += [@wind[y - 1][x].vektor] if y > 0
+    array += [@wind[y + 1][x].vektor] if y < @wind.length - 1
     gs = geschwindigkeit(x, y / 2.0)
     array.reduce([0, 0]) {|e, f| e.zip(f).map { |a, b| a + b / array.length / gs}}
   end

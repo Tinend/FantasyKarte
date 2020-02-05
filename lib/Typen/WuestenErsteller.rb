@@ -53,7 +53,6 @@ class WuestenErsteller
     duenenPunkte.sort!
     duenenPunkte.reverse! if umkehren
     duenenPunkte.each_with_index do |duenenPunkt, i|
-      #p [i.to_s + " / " + duenenPunkte.length.to_s, duene[duenenPunkt.y][duenenPunkt.x], [duenenPunkt.x, duenenPunkt.y]]
       glaettePunkt(duenenPunkt, duene)
     end
   end

@@ -21,7 +21,7 @@ class KartenErzeuger
     @terrainVerwalter = [
       TerrainVerwalter.new(BaumTyp.new(@datenBild.width, @datenBild.height), @hintergrund, @mittelgrund, @vordergrund, @datenBild),
       TerrainVerwalter.new(BergTyp.new(@datenBild.width, @datenBild.height), @hintergrund, @mittelgrund, @vordergrund, @datenBild),
-      TerrainVerwalter.new(WasserTyp.new(@datenBild.width, @datenBild.height), @hintergrund, @mittelgrund, @vordergrund, @datenBild),
+      TerrainVerwalter.new(WasserTyp.new(@datenBild.width, @datenBild.height, wind: @wind), @hintergrund, @mittelgrund, @vordergrund, @datenBild),
       TerrainVerwalter.new(GrasTyp.new(@datenBild.width, @datenBild.height), @hintergrund, @mittelgrund, @vordergrund, @datenBild),
       TerrainVerwalter.new(WuestenTyp.new(@datenBild.width, @datenBild.height, wind: @wind), @hintergrund, @mittelgrund, @vordergrund, @datenBild)
     ]
