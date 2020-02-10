@@ -40,6 +40,7 @@ class Wind
 
   def senkrecht(x, y, orientierung)
     y = (y * 2).to_i
+    x = x.to_i
     array = [@wind[y][x].senkrecht(orientierung)] * 4
     array += [@wind[y][x - 1].senkrecht(orientierung)] if x > 0
     array += [@wind[y][x + 1].senkrecht(orientierung)] if @wind.length > 0 and x < @wind[0].length - 1
@@ -50,6 +51,7 @@ class Wind
   
   def vektor(x, y)
     y = (y * 2).to_i
+    x = x.to_i
     array = [@wind[y][x].vektor] * 4
     array += [@wind[y][x - 1].vektor] if x > 0
     array += [@wind[y][x + 1].vektor] if @wind.length > 0 and x < @wind[0].length - 1
@@ -60,6 +62,7 @@ class Wind
   
   def richtung(x, y)
     y = (y * 2).to_i
+    x = x.to_i
     array = [@wind[y][x].vektor] * 4
     array += [@wind[y][x - 1].vektor] if x > 0
     array += [@wind[y][x + 1].vektor] if @wind.length > 0 and x < @wind[0].length - 1

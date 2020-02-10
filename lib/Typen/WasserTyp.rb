@@ -13,131 +13,167 @@ class WasserTyp < Typ
   MindestAbstand = 2
   WellenEndeWkeit = 0.2
   WellenWkeit = 0.03
-  MinWasserHelligkeit = 128
-  WasserHelligkeitsSchwankung = 128
-  MaxWellenHelligkeit = 160
-  WellenDunkelSubstaktor = 48
   MaxWellenSteigung = Math::PI / 25
   SonnenVektor = [1, 1, 2 **0.5]
   ZwischenSonneBeobachterVektor = [0.5, 1, 0.5 / 3 ** 0.5 + 0.5 * 2 ** 0.5] # MittelVektor zwischen Beobachter und Sonne
-  MaxSpiegelungsCosinus = 0.7
-  ReflexionMaxHelligkeit = 128
-  SpiegelMaxHelligkeit = 384
+  SichtVektor = [0, 3 ** 0.5, 1] # Vektor, der in Richtung Beobachter zeigt
+  MaxSpiegelungsCosinus = 0.875
+  ReflexionMaxHelligkeit = 64
+  SpiegelMaxHelligkeit = 12800
+  WellenPunkteApproximation = 20
+  WellenMaximalSteigung = 15
+  WellenLaenge = 0.5
   
   def initialize(breite, hoehe, wind:)
     @wind = wind
-    @hintergrundArray = Array.new(hoehe * 2) {Array.new(breite) {rand(WasserHelligkeitsSchwankung) + MinWasserHelligkeit}}
-    erneuereHintergrundArray()
-    definiereWellen()
+    p [@wind.vektor(10, 10), 1 / @wind.geschwindigkeit(10, 10) ** 2 / WellenLaenge / WellenMaximalSteigung]
+    #@normalVektorArray = Array.new(hoehe * 2) {Array.new(breite) {zufallsNormalVektor()}}
+    definiereWellen(breite, hoehe)
     super(breite, hoehe)
   end
 
-  def erneuereHintergrundArray()
-    hintergrundArrayKopie = Array.new(@hintergrundArray.length) {|i| @hintergrundArray[i].dup}
-    @hintergrundArray.each_with_index do |zeile, y|
-      zeile.collect!.with_index do |wert, x|
-        minX = [0, x - 1].max
-        maxX = [@hintergrundArray[0].length - 1, x + 1].min
-        minY = [0, y - 1].max
-        maxY = [@hintergrundArray.length - 1, y + 1].min
-        wert *= (maxX - minX) * (maxY - minY) - 1
-        (maxY - minY).times do |lokalY|
-          (maxX - minX).times do |lokalX|
-            wert += @hintergrundArray[lokalY + minY][lokalX + minX]
-          end
+  def definiereHintergrundArray(hoehe, breite)
+    @hintergrundArray = Array.new(hoehe * 2) do |y|
+      Array.new(breite) do |x|
+        grau = 0
+        3.times do |i|
+          grau += berechneFarbe(@normalVektorArray[y][(x - 1 + i) % @normalVektorArray[0].length])
         end
-        (wert / (2.0 * (maxX - minX) * (maxY - minY) - 1)).round
-     end
-    end
-  end
-  
-  def definiereWellen()
-    @frei = Array.new(@hintergrundArray.length) {Array.new(@hintergrundArray[0].length, 0)}
-    reihenfolge = Array.new(@hintergrundArray.length * @hintergrundArray[0].length) {|i| i} 
-    reihenfolge.shuffle!
-    wellenNummer = 0
-    reihenfolge.each_with_index do |nummer, index|
-      x = nummer / @hintergrundArray.length
-      y = nummer % @hintergrundArray.length
-      if @frei[y][x] and rand(0) <= WellenWkeit
-        wellenNummer += 1
-        erschaffeWelle(x, y, wellenNummer)
+        3.times do |i|
+          grau += berechneFarbe(@normalVektorArray[(y - 1 + i) % @normalVektorArray.length][x])
+        end
+        grau / 6
       end
     end
   end
 
-  def erstelleWellenPunkt(x, y, wellenNummer)
-    x = x.round
-    y = y.round
-    minX = [0, x - 1].max
-    maxX = [@hintergrundArray[0].length - 1, x + 1].min
-    minY = [0, y - 1].max
-    maxY = [@hintergrundArray.length - 1, y + 1].min
-    (maxY - minY).times do |lokalY|
-      (maxX - minX).times do |lokalX|
-        @hintergrundArray[lokalY + minY][lokalX + minX] = wellenNummer if @hintergrundArray[lokalY + minY][lokalX + minX] == 0
-      end
-    end
-    if @hintergrundArray[y][x] >= MaxWellenHelligkeit
-      @hintergrundArray[y][x] -= WellenDunkelSubstaktor
-    end
-  end
-    
-  def erschaffeWelle(x, y, wellenNummer)
-    erstelleWellenPunkt(x, y, wellenNummer)
-    erstelleArm(x, y, 1, wellenNummer)
-    erstelleArm(x, y, -1, wellenNummer)
+  def windSchrittX(x, y)
+    Math::PI * 2 * @wind.vektor(x, y / 2.0)[0] / @wind.geschwindigkeit(x, y / 2.0) ** 2 / WellenLaenge / WellenMaximalSteigung
   end
   
-  def erstelleArm(x, y, orientierung, wellenNummer)
-    until rand(0) < WellenEndeWkeit / @wind.geschwindigkeit(x, y / 2.0)
-      vektor = @wind.senkrecht(x, y / 2.0, orientierung)
-      vektor = vektor.zip(@wind.vektor(x.round, y.round / 2.0)).map {|element| element[0]}
-      x += vektor[0] / (vektor[0] ** 2 + vektor[1] ** 2) ** 0.5
-      y += vektor[1] / (vektor[0] ** 2 + vektor[1] ** 2) ** 0.5
-      return if x.round < 0 or y.round < 0 or y.round >= @hintergrundArray.length or x.round >= @hintergrundArray[0].length
-      return unless @frei[y.round][x.round] == 0 or @frei[y.round][x.round] == wellenNummer
-      erstelleWellenPunkt(x, y, wellenNummer)
+  def windSchrittY(x, y)
+    Math::PI * 2 * @wind.vektor(x, y / 2.0)[1] / @wind.geschwindigkeit(x, y / 2.0) ** 2 / WellenLaenge / WellenMaximalSteigung
+  end
+  
+  def definiereWellen(breite, hoehe)
+    startWert = rand(0) * Math::PI * 2
+    xWert = startWert
+    yWert = startWert
+    xArray = Array.new(breite) do |x|
+      if x > 0
+        xWert += windSchrittX(x - 1, 0)
+      end
+      xWert
     end
+    yArray = Array.new(hoehe * 2) do |y|
+      if y > 0
+        yWert += windSchrittY(0, y - 1)
+      end
+      yWert
+    end
+    wertAlt = startWert
+    @wellenZustand = Array.new(hoehe * 2) do |y| 
+      Array.new(breite) do |x|
+        if x > 0 and y > 0
+          deltaX = @wind.richtung(x, y / 2.0)[0] - @wind.richtung(x, y / 2.0 - 0.5)[0]
+          deltaY = @wind.richtung(x, y / 2.0)[1] - @wind.richtung(x - 1, y / 2.0)[1]
+          wert = (xArray[x] + windSchrittY(x, y - 1) + yArray[y] + windSchrittX(x - 1, y)) / 2
+          #wert = xArray[x] + windSchrittY(x, y - 1)
+          xArray[x] = wert
+          yArray[y] = wert
+        elsif x == 0
+          wert = yArray[y]
+          wertAlt = xArray[0]
+          xArray[0] = wert
+        elsif y == 0
+          wert = xArray[x]
+          yArray[0] = wert
+        end
+        wert
+      end
+    end
+    @hintergrundArray = Array.new(hoehe * 2) do |y|
+      Array.new(breite) do |x|
+        berechneFarbeVonWellenPunkt(x, y)
+      end
+    end
+  end
+  
+  def berechneFarbeVonWellenPunkt(x, y)
+    zustand = @wellenZustand[y][x]
+    if x == 0
+      p [x, y, zustand, wellenHoehe(x, y, zustand), [@wind.richtung(x, y / 2.0)[1], Math::cos(zustand), Math::PI / WellenLaenge / WellenMaximalSteigung], (1 - ySteigungBerechnen(x, y, zustand)), wellenHoehe(x, y, zustand) / (1 - ySteigungBerechnen(x, y, zustand))]
+    end
+    #return wellenHoehe(x, y, zustand) * 40 + 128
+    y += wellenHoehe(x, y, zustand) / (1 - ySteigungBerechnen(x, y, zustand))
+    y = [[@wellenZustand.length - 1, y].min, 0].max
+    normalVektor = normalVektorBerechnen(@wind.geschwindigkeit(x, y / 2.0), @wind.richtung(x, y / 2.0), zustand)
+    if x == 0
+      p [x, y, zustand, wellenHoehe(x, y, zustand) + 128, berechneFarbe(normalVektor), berechneSichtbarkeit(normalVektor)]
+    end
+    berechneFarbe(normalVektor) * berechneSichtbarkeit(normalVektor)
+  end
+  
+  def ySteigungBerechnen(x, y, zustand)
+    @wind.richtung(x, y / 2.0)[1] * Math::cos(zustand) * Math::PI / WellenMaximalSteigung
+  end
+  
+  def wellenHoehe(x, y, zustand)
+    Math::sin(zustand) * @wind.geschwindigkeit(x, y / 2.0) * WellenLaenge
+  end
+  
+  def normalVektorBerechnen(windGeschwindigkeit, windrichtung, zustand)
+    steigung = Math::cos(zustand) * Math::PI / WellenLaenge / WellenMaximalSteigung
+    wellenNormalVektor = windrichtung.dup
+    wellenNormalVektor.push((windGeschwindigkeit / steigung).abs)
   end
   
   def macheTerrain(datenFarbe, x, y)
     wasser = Wasser.new(10, 5)
     return [wasser.malen(), [0, 0]]
   end
-
+  
   def definiereTerrain?(datenFarbe)
     return false
     rand(1024) <= 11
   end
-
+  
   def kannFaerben?(datenFarbe)
     return true if MussFaerbenNummern.any? {|mfn| ChunkyPNG::Color.r(datenFarbe) == mfn} or DarfFaerbenNummern.any? {|dfn| ChunkyPNG::Color.r(datenFarbe) == dfn}
     return false
   end
-
+  
   def erstelleHintergrund(hintergrund)
     hintergrund.height.times do |y|
       hintergrund.width.times do |x|
         if @hintergrund[x, y] != ChunkyPNG::Color::TRANSPARENT
-          #grau = @hintergrundArray[y * 2][x]
-          grau = [berechneFarbe(zufallsNormalVektor), 255].min
+          grau = [[((@hintergrundArray[y * 2][x] + @hintergrundArray[y * 2 + 1][x]) / 2).round, 255].min, 0].max
           hintergrund[x, y] = ChunkyPNG::Color.rgb(grau, grau, grau)
         end
       end
     end
   end
 
+  def berechneSichtbarkeit(normalVektor)
+    normalVektorNorm = normalVektor.reduce(0) {|norm, element| (norm ** 2 + element ** 2) ** 0.5}
+    sichtVektorNorm = SichtVektor.reduce(0) {|norm, element| (norm ** 2 + element ** 2) ** 0.5}
+    skalarProdukt = normalVektor[0] * SichtVektor[0] + normalVektor[1] * SichtVektor[1] + normalVektor[2] * SichtVektor[2]
+    p [normalVektor, SichtVektor, skalarProdukt]
+    return 0 if skalarProdukt <= 0
+    return skalarProdukt / sichtVektorNorm / normalVektorNorm
+  end
+    
   def berechneFarbe(normalVektor)
     normalVektorNorm = normalVektor.reduce(0) {|norm, element| (norm ** 2 + element ** 2) ** 0.5}
     sonnenVektorNorm = SonnenVektor.reduce(0) {|norm, element| (norm ** 2 + element ** 2) ** 0.5}
     zwischenWinkelNorm = ZwischenSonneBeobachterVektor.reduce(0) {|norm, element| (norm ** 2 + element ** 2) ** 0.5}
     acosSonneNormal = (normalVektor[0] * SonnenVektor[0] + normalVektor[1] * SonnenVektor[1] + normalVektor[2] * SonnenVektor[2]) / (normalVektorNorm * sonnenVektorNorm)
     acosZwischenNormal = (normalVektor[0] * ZwischenSonneBeobachterVektor[0] + normalVektor[1] * ZwischenSonneBeobachterVektor[1] + normalVektor[2] * ZwischenSonneBeobachterVektor[2]) / (normalVektorNorm * zwischenWinkelNorm)
-    return (Math::sin(Math::acos(acosSonneNormal)) * ReflexionMaxHelligkeit + [acosZwischenNormal - MaxSpiegelungsCosinus, 0].max * SpiegelMaxHelligkeit).to_i
+    return acosSonneNormal * ReflexionMaxHelligkeit + ReflexionMaxHelligkeit + [acosZwischenNormal - MaxSpiegelungsCosinus, 0].max ** 2 * SpiegelMaxHelligkeit
   end
 
   def zufallsNormalVektor() #zufälliger Normalvektor für Wasseroberfläche
+    raise
     return [(rand(0) - rand(0)) / MaxWellenSteigung / 2 ** 0.5, (rand(0) - rand(0)) / MaxWellenSteigung / 2 ** 0.5, 1]
   end
 end
