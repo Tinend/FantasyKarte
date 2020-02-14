@@ -1,5 +1,4 @@
-$:.unshift(File.join(File.dirname(__FILE__), '..', 'lib', 'NuetzlicheFunktionen'))
-require "ZweiDWienerProzess"
+require "NuetzlicheFunktionen/ZweiDWienerProzess"
 require 'minitest/autorun'
 
 class ZweiDWienerProzessTest < Minitest::Test
