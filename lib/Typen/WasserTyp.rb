@@ -20,37 +20,70 @@ class WasserTyp < Typ
   MaxSpiegelungsCosinus = 0.92
   MinimalHelligkeit = -96
   ReflexionMaxHelligkeit = 128
-  #SpiegelMaxHelligkeit = 12800
-  SpiegelMaxHelligkeit = 0
+  SpiegelMaxHelligkeit = 12800
+  #SpiegelMaxHelligkeit = 0
   WellenPunkteApproximation = 20
   WellenMaximalSteigung = 15
   #WellenLaenge = 0.8
-  WellenLaenge = 3
-  FarbBerechnungsVerschiebungen = [[0,0], [0.5, 0], [-0.5, 0], [0, 0.5], [0, -0.5]]
+  WellenLaenge = 20
+  #FarbBerechnungsVerschiebungen = [[0,0], [0.49, 0], [-0.5, 0], [0, 0.49], [0, -0.5]]
+  FarbBerechnungsVerschiebungen = [[0,0]]
   NotfallWellenFarbePunkte = [[1, 0], [-1, 0], [0, 1], [0, -1]]
   YVerschiebungsToleranz = 0.01
+  #HintergrundFaktor = 10
+  HintergrundFaktor = 0.01
+  #HintergrundFaktor = 0
   
-  def initialize(breite, hoehe, wind:)
+  def initialize(breite, hoehe, wind:, hoehenProfil:)
     @wind = wind
+    @hoehenProfil = hoehenProfil
+    definiereNormalVektoren(hoehe, breite)
     definiereWellen(breite, hoehe)
     super(breite, hoehe)
   end
 
-  def definiereHintergrundArray(hoehe, breite)
-    @hintergrundArray = Array.new(hoehe * 2) do |y|
+  def definiereNormalVektoren(hoehe, breite)
+    normalVektoren = Array.new(hoehe * 2) do
+      Array.new(breite) do
+        abweichung = 1.0 / WellenMaximalSteigung * (rand(0) - rand(0))
+        winkel = rand(0) * Math::PI
+        [Math::sin(winkel) * abweichung, Math::cos(winkel) * abweichung, 1]
+      end
+    end
+    @normalVektoren = Array.new(hoehe * 2) do |y|
       Array.new(breite) do |x|
-        grau = 0
-        3.times do |i|
-          grau += berechneFarbe(@normalVektorArray[y][(x - 1 + i) % @normalVektorArray[0].length])
+        vektor = normalVektoren[y][x].dup
+        if x > 0
+          vektor[0] += normalVektoren[y][x - 1][0]
+          vektor[1] += normalVektoren[y][x - 1][1]
+          vektor[2] += normalVektoren[y][x - 1][2]
         end
-        3.times do |i|
-          grau += berechneFarbe(@normalVektorArray[(y - 1 + i) % @normalVektorArray.length][x])
+        if x < breite - 1
+          vektor[0] += normalVektoren[y][x + 1][0]
+          vektor[1] += normalVektoren[y][x + 1][1]
+          vektor[2] += normalVektoren[y][x + 1][2]
         end
-        grau / 6
+        if y > 0
+          vektor[0] += normalVektoren[y - 1][x][0]
+          vektor[1] += normalVektoren[y - 1][x][1]
+          vektor[2] += normalVektoren[y - 1][x][2]
+        end
+        if y < hoehe * 2 - 1
+          vektor[0] += normalVektoren[y + 1][x][0]
+          vektor[1] += normalVektoren[y + 1][x][1]
+          vektor[2] += normalVektoren[y + 1][x][2]
+        end
+        vektor[2] = vektor[2] ** 0.5
+        normalisiere(vektor)[0..1] + [0]
       end
     end
   end
 
+  def normalisiere(vektor)
+    norm = vektor.reduce(0) {|wert, element| (wert ** 2 + element ** 2) ** 0.5}
+    vektor.collect {|element| element / norm}
+  end
+  
   def windSchrittX(x, y)
     Math::PI * 2 * @wind.vektor(x, y / 2.0)[0] / @wind.geschwindigkeit(x, y / 2.0) ** 2 / WellenLaenge / WellenMaximalSteigung
   end
@@ -101,25 +134,48 @@ class WasserTyp < Typ
       end
     end
   end
+
+  def winkel(v1, v2)
+    cos = (v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2]) / (v1.reduce(0) {|norm, zahl| (norm ** 2 + zahl ** 2) ** 0.5} * v2.reduce(0) {|norm, zahl| (norm ** 2 + zahl ** 2) ** 0.5})
+    Math::acos(cos)
+  end
   
   def berechneFarbeVonWellenPunkt(anfangsX, anfangsY, weiter: true)
     zustand = @wellenZustand[anfangsY][anfangsX]
     gesamtGewicht = 0
     gesamtFarbe = 0
-    p [anfangsX, anfangsY]
+    
+    max = 0
+    
     FarbBerechnungsVerschiebungen.each do |verschiebung|
       x = anfangsX + verschiebung[0]
       y = anfangsY + verschiebung[1]
       y = [[@wellenZustand.length - 1, y].min, 0].max
       zustand = @wellenZustand[y.round][x.round]
-      until y <= -0.5 or y >= @wellenZustand.length - 0.5 or (anfangsY - y + 2 * wellenHoehe(x, y, zustand)).abs <= YVerschiebungsToleranz
-        p [x, anfangsY, y, wellenHoehe(x, y, zustand), ySteigungBerechnen(x, y, zustand), (anfangsY - y + 2 * wellenHoehe(x, y, zustand)) / (1 - 2 * ySteigungBerechnen(x, y, zustand))]
-        y += (anfangsY - y + 2 * wellenHoehe(x, y, zustand)) / (1 - 2 * ySteigungBerechnen(x, y, zustand)) / 10
-        y = [[@wellenZustand.length - 0.5, y].min, -0.5].max
+      while y > 0.5 and wellenHoehe(x, y, zustand) < wellenHoehe(x, y, @wellenZustand[y.round - 1][x.round]) + 0.5 and anfangsY - y + 2 * wellenHoehe(x, y, zustand) < - 0.25 and wellenHoehe(x, y, @wellenZustand[y.round - 1][x.round]) <= 0.25
+        y -= 1
         zustand = @wellenZustand[y.round][x.round]
       end
+      while y < @wellenZustand.length - 1.5 and ((wellenHoehe(x, y, zustand) < wellenHoehe(x, y, @wellenZustand[y.round + 1][x.round]) - 0.5 and anfangsY - y + 2 * wellenHoehe(x, y, zustand) > 0.25 and anfangsY - y + 2 * wellenHoehe(x, y, @wellenZustand[y.round + 1][x.round]) >= -0.25) or winkel(normalVektorBerechnen(@wind.geschwindigkeit(x, y / 2.0), @wind.richtung(x, y / 2.0), zustand), SichtVektor) >= Math::PI / 2)
+        y += 1
+        zustand = @wellenZustand[y.round][x.round]
+      end
+      #until y <= -0.5 or y >= @wellenZustand.length - 0.5 or (anfangsY - y + 2 * wellenHoehe(x, y, zustand)).abs <= YVerschiebungsToleranz
+        #if y < @wellenZustand.length - 1
+        #  ySteigung = wellenHoehe(x, y + 1, @wellenZustand[y.round + 1][x.round]) - wellenHoehe(x, y, zustand)
+        #else
+        #  ySteigung = wellenHoehe(x, y, zustand) - wellenHoehe(x, y - 1, @wellenZustand[y.round - 1][x.round])
+        #end
+
+        #p [x, anfangsY, wellenHoehe(x, anfangsY, @wellenZustand[anfangsY.round][x.round]), y, wellenHoehe(x, y, zustand), ySteigung, (anfangsY - y + 2 * wellenHoehe(x, y, zustand)) / (1 - 2 * ySteigungBerechnen(x, y, zustand))]
+      #  y += [[(anfangsY - y + 2 * wellenHoehe(x, y, zustand)) / (1 - 2 * ySteigung), 1].min, -1].max
+      #  y = [[@wellenZustand.length - 0.5, y].min, -0.5].max
+      #  zustand = @wellenZustand[y.round][x.round]
+      #end
       x = [[@wellenZustand[0].length - 1, x].min, 0].max
       normalVektor = normalVektorBerechnen(@wind.geschwindigkeit(x, y / 2.0), @wind.richtung(x, y / 2.0), zustand)
+      norm = normalVektor.reduce(0) {|n, wert| (n ** 2 + wert ** 2) ** 0.5}
+      normalVektor.collect!.with_index {|wert, index| wert / norm + @normalVektoren[y][x][index] * HintergrundFaktor}
       gewicht = berechneSichtbarkeit(normalVektor)
       farbe = berechneFarbe(normalVektor)
       gesamtFarbe += farbe * gewicht
@@ -137,12 +193,12 @@ class WasserTyp < Typ
       return gesamtFarbe / punkte
     elsif gesamtGewicht <= 0
       return 0
-    end
+    end    
     gesamtFarbe / gesamtGewicht if gesamtGewicht != 0
   end
-  
+    
   def ySteigungBerechnen(x, y, zustand)
-    @wind.richtung(x, y / 2.0)[1] * Math::cos(zustand) * Math::PI / WellenMaximalSteigung
+    @wind.richtung(x, y / 2.0)[1] * Math::cos(zustand) * 2 * Math::PI / WellenMaximalSteigung
   end
   
   def wellenHoehe(x, y, zustand)

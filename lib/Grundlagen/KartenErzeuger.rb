@@ -1,10 +1,11 @@
-require "BaumTyp"
-require "BergTyp"
-require "WasserTyp"
-require "GrasTyp"
-require "WuestenTyp"
-require "TerrainVerwalter"
-require "Wind"
+require "Typen/BaumTyp"
+require "Typen/BergTyp"
+require "Typen/WasserTyp"
+require "Typen/GrasTyp"
+require "Typen/WuestenTyp"
+require "Grundlagen/TerrainVerwalter"
+require "NuetzlicheFunktionen/Wind"
+require "HoehenProfil/HoehenProfil"
 
 class KartenErzeuger
 
@@ -13,6 +14,7 @@ class KartenErzeuger
   
   def initialize(datenBild)
     @datenBild = datenBild
+    hoehenProfil = HoehenProfil.new(@datenBild.width, @datenBild.height)
     @hintergrund = ChunkyPNG::Image.new(@datenBild.width, @datenBild.height, ChunkyPNG::Color::WHITE)
     @mittelgrund = ChunkyPNG::Image.new(@datenBild.width, @datenBild.height, ChunkyPNG::Color::TRANSPARENT)
     @vordergrund = ChunkyPNG::Image.new(@datenBild.width, @datenBild.height, ChunkyPNG::Color::TRANSPARENT)
@@ -21,9 +23,9 @@ class KartenErzeuger
     @terrainVerwalter = [
       TerrainVerwalter.new(BaumTyp.new(@datenBild.width, @datenBild.height), @hintergrund, @mittelgrund, @vordergrund, @datenBild),
       TerrainVerwalter.new(BergTyp.new(@datenBild.width, @datenBild.height), @hintergrund, @mittelgrund, @vordergrund, @datenBild),
-      TerrainVerwalter.new(WasserTyp.new(@datenBild.width, @datenBild.height, wind: @wind), @hintergrund, @mittelgrund, @vordergrund, @datenBild),
+      TerrainVerwalter.new(WasserTyp.new(@datenBild.width, @datenBild.height, wind: @wind, hoehenProfil: hoehenProfil), @hintergrund, @mittelgrund, @vordergrund, @datenBild),
       TerrainVerwalter.new(GrasTyp.new(@datenBild.width, @datenBild.height), @hintergrund, @mittelgrund, @vordergrund, @datenBild),
-      TerrainVerwalter.new(WuestenTyp.new(@datenBild.width, @datenBild.height, wind: @wind), @hintergrund, @mittelgrund, @vordergrund, @datenBild)
+      TerrainVerwalter.new(WuestenTyp.new(@datenBild.width, @datenBild.height, wind: @wind, hoehenProfil: hoehenProfil), @hintergrund, @mittelgrund, @vordergrund, @datenBild)
     ]
   end
 

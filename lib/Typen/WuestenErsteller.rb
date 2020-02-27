@@ -1,5 +1,6 @@
 require "berechneEntfernung"
 require "DuenenPunkt"
+require "HoehenProfil/WuestenHoehenPunkt"
 
 class WuestenErsteller
 
@@ -19,7 +20,8 @@ class WuestenErsteller
   MaxGroesseRandPlatz = 8
   MaxHoeheErreichen = 100
   
-  def initialize(bild, wind:)
+  def initialize(bild, wind:, hoehenProfil:)
+    @hoehenProfil = hoehenProfil
     @wind = wind
     generiereBild(bild)
     @entfernungen = berechneEntfernung(@bild)
@@ -28,10 +30,19 @@ class WuestenErsteller
     erstelleDuenen(wind: @wind, maxHoehenFaktor: MaxHoehenFaktor1)
     erstelleDuenen(wind: @wind, maxHoehenFaktor: MaxHoehenFaktor2)
     glaette(@duenen, umkehren: true)
+    updateHoehenProfil
   end
   
   attr_reader :duenen, :bild
 
+  def updateHoehenProfil()
+    @duenen.each_with_index do |zeile, y|
+      zeile.each_with_index do |hoehe, x|
+        @hoehenProfil.hoehenPunktEinfuegen(x: x, y: y, hoehenPunkt: WuestenHoehenPunkt.new(hoehe)) if @entfernungen[y][x] > 0
+      end
+    end
+  end
+  
   def generiereBild(bild)
     @bild = ChunkyPNG::Image.new(bild.width, bild.height * 2, ChunkyPNG::Color::TRANSPARENT)
     bild.height.times do |y|
@@ -78,6 +89,7 @@ class WuestenErsteller
           lokalY = kurzY + minY
           next if punkt.x == lokalX and punkt.y == lokalY
           neueHoehe = punkt.berechneHoehe(lokalX, lokalY)
+          #p [lokalY, lokalX, duene.length, duene[0].length, duene[lokalY][lokalX]]
           if duene[lokalY][lokalX] < neueHoehe
             duene[lokalY][lokalX] = neueHoehe
             verbesserbar.push(DuenenPunkt.new(x: lokalX, y: lokalY, hoehe: neueHoehe, windGeschwindigkeit: @wind.geschwindigkeit(lokalX, lokalY / 2.0), windRichtung: @wind.richtung(lokalX, lokalY / 2.0)))
@@ -222,19 +234,19 @@ class WuestenErsteller
     y
   end
 
-  def berechneHelligkeitRechtsRunter(x:, y:)
-    scheinbareHoehe = Math::cos(Math::PI / 4 - Math::atan((@duenen[y][x] - @duenen[y + 1][x + 1]) / 2 **0.5))
-    scheinbareBreite = Math::cos(Math::atan((@duenen[y][x] - @duenen[y + 1][x + 1]) / 2 **0.5))
-    return scheinbareHoehe * scheinbareBreite * 256
-  end
+  #def berechneHelligkeitRechtsRunter(x:, y:)
+  #  scheinbareHoehe = Math::cos(Math::PI / 4 - Math::atan((@duenen[y][x] - @duenen[y + 1][x + 1]) / 2 **0.5))
+  #  scheinbareBreite = Math::cos(Math::atan((@duenen[y][x] - @duenen[y + 1][x + 1]) / 2 **0.5))
+  #  return scheinbareHoehe * scheinbareBreite * 256
+  #end
   
-  def berechneHelligkeitAnKoordinate(x:, kartenY:)
-    y = findeY(x: x, kartenY: kartenY)
-    farben = []
-    farben.push(berechneHelligkeitRechtsRunter(x: x - 1, y: y - 1)) if x > 0 and y > 0
-    farben.push(berechneHelligkeitRechtsRunter(x: x - 1, y: y)) if x > 0 and y < @duenen.length - 1
-    farben.push(berechneHelligkeitRechtsRunter(x: x, y: y - 1)) if x < @duenen[0].length - 1 and y > 0
-    farben.push(berechneHelligkeitRechtsRunter(x: x, y: y)) if x < @duenen[0].length - 1 and y < @duenen.length - 1
-    return (farben.reduce(:+) / farben.length).round
-  end
+  #def berechneHelligkeitAnKoordinate(x:, kartenY:)
+  #  y = findeY(x: x, kartenY: kartenY)
+  #  farben = []
+  #  farben.push(berechneHelligkeitRechtsRunter(x: x - 1, y: y - 1)) if x > 0 and y > 0
+  #  farben.push(berechneHelligkeitRechtsRunter(x: x - 1, y: y)) if x > 0 and y < @duenen.length - 1
+  #  farben.push(berechneHelligkeitRechtsRunter(x: x, y: y - 1)) if x < @duenen[0].length - 1 and y > 0
+  #  farben.push(berechneHelligkeitRechtsRunter(x: x, y: y)) if x < @duenen[0].length - 1 and y < @duenen.length - 1
+  #  return (farben.reduce(:+) / farben.length).round
+  #end
 end

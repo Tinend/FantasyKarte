@@ -11,9 +11,10 @@ class WuestenTyp < Typ
   DarfFaerbenNummern = [0, 11, 12, 13, 14, 15, 16, 17, 18, 19, 51, 52, 53, 54, 55, 56, 57, 58, 59, 71, 72, 73, 74, 75, 76, 77, 78, 79, 254]
   MindestAbstand = -1
 
-  def initialize(breite, hoehe, wind: @wind)
+  def initialize(breite, hoehe, wind: @wind, hoehenProfil:)
     super(breite, hoehe)
     @wind = wind
+    @hoehenProfil = hoehenProfil
     #@sinusKonstante1 = 15.0 + rand(10)
     #sinusKonstante1 = 24.0
     #sinusKonstante2 = Math::PI * 0.4 * rand(0) + 0.1 * Math::PI
@@ -31,11 +32,11 @@ class WuestenTyp < Typ
   end
 
   def erstelleHintergrund(hintergrund)
-    @wuestenErsteller = WuestenErsteller.new(@hintergrund, wind: @wind)
+    @wuestenErsteller = WuestenErsteller.new(@hintergrund, wind: @wind, hoehenProfil: @hoehenProfil)
     hintergrund.height.times do |y|
       hintergrund.width.times do |x|
         if @hintergrund[x, y] != ChunkyPNG::Color::TRANSPARENT
-          grau = @wuestenErsteller.berechneHelligkeitAnKoordinate(x: x, kartenY: y)
+          grau = @hoehenProfil.berechneHelligkeitAnKoordinate(x: x, y: y)
           hintergrund[x, y] = ChunkyPNG::Color.rgb(grau, grau, grau)
         end
       end
