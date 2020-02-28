@@ -1,5 +1,5 @@
 require "HoehenProfil/HoehenPunkt"
 
-class WuestenHoehenPunkt < HoehenPunkt
+class WasserHoehenPunkt < HoehenPunkt
 end
 
