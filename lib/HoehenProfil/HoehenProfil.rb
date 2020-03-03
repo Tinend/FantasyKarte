@@ -33,7 +33,7 @@ class HoehenProfil
   
   def berechneHelligkeitRechtsRunter(x:, y:, hauptX:, hauptY:)
     scheinbareHoehe = Math::cos(Math::PI / 4 - Math::atan((@hoehenProfil[y][x].hoehe - @hoehenProfil[y + 1][x + 1].hoehe) / 2 ** 0.5))
-    scheinbareBreite = Math::cos(Math::atan((@hoehenProfil[y][x].hoehe - @hoehenProfil[y + 1][x + 1].hoehe) / 2 ** 0.5))
+    scheinbareBreite = Math::cos(Math::atan((@hoehenProfil[y + 1][x].hoehe - @hoehenProfil[y][x + 1].hoehe) / 2 ** 0.5))
     vektor1 = [1, 1, @hoehenProfil[y][x].hoehe - @hoehenProfil[y + 1][x + 1].hoehe]
     vektor2 = [1, -1, @hoehenProfil[y + 1][x].hoehe - @hoehenProfil[y][x + 1].hoehe]
     normalVektor = berechneNormalVektor(vektor1, vektor2)
