@@ -10,16 +10,22 @@ module ErstelleWasserZustaende
   def self.erzeugeZustaende(breite:, hoehe:, wind:)
     zustaende = Array.new(hoehe) {|y| Array.new(breite) {|x| WasserZustandPunkt.new(x: 0, y: 0)}}
     zustaende[0][0] = WasserZustandPunkt.erstelleZufaellig()
+    self.updaten(abstand: 1, zustaende: zustaende, breite: breite, hoehe: hoehe, wind: wind, testArray: [[-1, 0], [0, -1]], akzeptanzen: [[true, true], [true, true]])
+    0.times do
+      self.updaten(abstand: 1, zustaende: zustaende, breite: breite, hoehe: hoehe, wind: wind, testArray: [[0, 0], [0, -1], [0, 1], [1, 0], [-1, 0]], akzeptanzen: [[true, false], [false, true]])
+      self.updaten(abstand: 1, zustaende: zustaende, breite: breite, hoehe: hoehe, wind: wind, testArray: [[0,0], [0, -1], [0, 1], [1, 0], [-1, 0]], akzeptanzen: [[false, true], [true, false]])
+    end
+    return zustaende
     runden = [Math::log(breite, 2).to_i, Math::log(hoehe, 2).to_i].max
     (runden + 1).times do |i|
       abstand = 2 ** (runden - i)
       self.updaten(abstand: abstand, zustaende: zustaende, breite: breite, hoehe: hoehe, wind: wind, testArray: [[-1, -1], [-1, 1], [1, -1], [1, 1]], akzeptanzen: [[false, false], [false, true]])
-      100.times do
+      10.times do
         self.updaten(abstand: abstand, zustaende: zustaende, breite: breite, hoehe: hoehe, wind: wind, testArray: [[0, 0], [-1, -1], [-1, 1], [1, -1], [1, 1]], akzeptanzen: [[true, false], [false, false]])
         self.updaten(abstand: abstand, zustaende: zustaende, breite: breite, hoehe: hoehe, wind: wind, testArray: [[0,0], [-1, -1], [-1, 1], [1, -1], [1, 1]], akzeptanzen: [[false, false], [false, true]])
       end
       self.updaten(abstand: abstand, zustaende: zustaende, breite: breite, hoehe: hoehe, wind: wind, testArray: [[0, -1], [0, 1], [1, 0], [-1, 0]], akzeptanzen: [[false, true], [true, false]])
-      100.times do
+      10.times do
         self.updaten(abstand: abstand, zustaende: zustaende, breite: breite, hoehe: hoehe, wind: wind, testArray: [[0, 0], [0, -1], [0, 1], [1, 0], [-1, 0]], akzeptanzen: [[true, false], [false, true]])
         self.updaten(abstand: abstand, zustaende: zustaende, breite: breite, hoehe: hoehe, wind: wind, testArray: [[0,0], [0, -1], [0, 1], [1, 0], [-1, 0]], akzeptanzen: [[false, true], [true, false]])
       end
@@ -63,6 +69,7 @@ module ErstelleWasserZustaende
               richtungen.push(testSkaliert)
             end
           end
+          next if winde.length == 0
           zustaende[y][x] = WasserZustandPunkt.erstelleUpdate(winde, nachbarZustaende, richtungen)
         end
       end

@@ -16,8 +16,8 @@ class Wind
       wiener = definiereNeigungen(breite, hoehe * 2 - 1, FallKonstante)
       @wind.zip(wiener).each do |ww|
         ww[0].zip(ww[1]).each do |windRichtung|
-          windRichtung[0].windVektorErhalten(windRichtung[1] / WindWinkelDivisor)
-          #windRichtung[0].windVektorErhalten(windRichtung[1] * 4.5 + zufallsWinkel)
+          #windRichtung[0].windVektorErhalten(windRichtung[1] / WindWinkelDivisor)
+          windRichtung[0].windVektorErhalten(windRichtung[1] * 4.5 + zufallsWinkel)
         end
       end
       puts "Wind #{i + 1} / #{WindZahl}"

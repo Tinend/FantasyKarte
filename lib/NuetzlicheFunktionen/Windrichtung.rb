@@ -2,6 +2,7 @@ class Windrichtung
   def initialize(grundGeschwindigkeit:)
     @grundGeschwindigkeit = grundGeschwindigkeit
     #@vektor = [0.2 * @grundGeschwindigkeit,0]
+    #@vektor = [0,0]
     @vektor = [0,0]
   end
 

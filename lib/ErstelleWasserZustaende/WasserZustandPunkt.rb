@@ -1,8 +1,8 @@
 class WasserZustandPunkt
   #WellenLaenge = 4.0
-  WellenLaenge = 1
+  WellenLaenge = 3.0
   #WellenMaximalSteigung = 15
-  WellenMaximalSteigung = 2
+  WellenMaximalSteigung = 10.0
   
   def self.erstelleUpdate(winde, nachbarZustaende, vektorDistanz)
     xy = winde.zip(nachbarZustaende, vektorDistanz).map do |windZustand|
@@ -18,7 +18,7 @@ class WasserZustandPunkt
       wasserZustand.y += punkt.y / xy.length / punktLaenge
       wasserZustand
     end
-    return durchschnitt
+    #return durchschnitt
     durchschnittsLaenge = xy.reduce(0) {|summe, wasserZustandPunkt| summe + wasserZustandPunkt.laenge} / xy.length
     durchschnitt.laengeAnpassen(durchschnittsLaenge)
     max = xy.max {|punkt1, punkt2| durchschnitt.abstand(punkt1) <=> durchschnitt.abstand(punkt2)}
