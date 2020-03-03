@@ -5,6 +5,8 @@ class HoehenProfil
     @hoehenProfil = Array.new(2 * hoehe) {Array.new(breite) {HoehenPunkt.new(0)}}
   end
 
+  attr_reader :hoehenProfil
+
   def hoehenPunktEinfuegen(x:, y:, hoehenPunkt:)
     @hoehenProfil[y][x] = hoehenPunkt
   end

@@ -1,8 +1,8 @@
 class Windrichtung
   def initialize(grundGeschwindigkeit:)
     @grundGeschwindigkeit = grundGeschwindigkeit
-    #@vektor = [0.2 * @grundGeschwindigkeit,0]
-    @vektor = [0,0]
+    @vektor = [0.2 * @grundGeschwindigkeit,0]
+    #@vektor = [0,0]
   end
 
   attr_reader :vektor
@@ -22,5 +22,9 @@ class Windrichtung
 
   def senkrecht(orientierung)
     [- @vektor[1] * orientierung, @vektor[0] * orientierung]
+  end
+
+  def richtung()
+     @vektor.map {|element| element / geschwindigkeit}
   end
 end

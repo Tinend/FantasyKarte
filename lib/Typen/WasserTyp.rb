@@ -25,7 +25,7 @@ class WasserTyp < Typ
   SpiegelMaxHelligkeit = 12800
   #SpiegelMaxHelligkeit = 0
   WellenPunkteApproximation = 20
-  WellenMaximalSteigung = 15
+  #WellenMaximalSteigung = 15
   #WellenLaenge = 0.8
   WellenLaenge = 4
   #FarbBerechnungsVerschiebungen = [[0,0], [0.49, 0], [-0.5, 0], [0, 0.49], [0, -0.5]]
@@ -237,7 +237,7 @@ class WasserTyp < Typ
     @wellenZustand.each_with_index do |zeile, y|
       zeile.each_with_index do |zustand, x|
         if @hintergrund[x, y / 2] != ChunkyPNG::Color::TRANSPARENT
-          @hoehenProfil.hoehenPunktEinfuegen(x: x, y: y, hoehenPunkt: WasserHoehenPunkt.new(Math::cos(zustand.zustand) * zustand.wellenLaenge + (rand(0) - rand(0)) * MiniwellenHoehe))
+          @hoehenProfil.hoehenPunktEinfuegen(x: x, y: y, hoehenPunkt: WasserHoehenPunkt.new(zustand.hoehe + (rand(0) - rand(0)) * MiniwellenHoehe))
         end
       end
     end
@@ -245,9 +245,10 @@ class WasserTyp < Typ
       hintergrund.width.times do |x|
         if @hintergrund[x, y] != ChunkyPNG::Color::TRANSPARENT
           #grau = [[((@hintergrundArray[y * 2][x] + @hintergrundArray[y * 2 + 1][x]) / 2).round, 255].min, 0].max
-          #grau = @hoehenProfil.berechneHelligkeitAnKoordinate(x: x, y: y)
-          grau = [[(255 + @wellenZustand[y][x].zustand).to_i, 255].min, 0].max
-          p [@wellenZustand[y][x].zustand, @wellenZustand[y][x].wellenLaenge, grau, x, y]
+          grau = @hoehenProfil.berechneHelligkeitAnKoordinate(x: x, y: y)
+          #grau = [[(@hoehenProfil.hoehenProfil[y][x].hoehe / 10).to_i + 128, 255].min, 0].max
+          #grau = [[(64 + 32 * @wellenZustand[y][x].hoehe).to_i, 255].min, 0].max
+          p [@wellenZustand[y][x].hoehe, @wellenZustand[y][x].y, @wellenZustand[y][x].x, Math::tan(@wellenZustand[y][x].y / @wellenZustand[y][x].x), grau, x, y]
           hintergrund[x, y] = ChunkyPNG::Color.rgb(grau, grau, grau)
         end
       end
