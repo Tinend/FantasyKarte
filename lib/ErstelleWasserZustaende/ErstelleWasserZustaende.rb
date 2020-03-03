@@ -14,12 +14,12 @@ module ErstelleWasserZustaende
     (runden + 1).times do |i|
       abstand = 2 ** (runden - i)
       self.updaten(abstand: abstand, zustaende: zustaende, breite: breite, hoehe: hoehe, wind: wind, testArray: [[-1, -1], [-1, 1], [1, -1], [1, 1]], akzeptanzen: [[false, false], [false, true]])
-      10.times do
+      100.times do
         self.updaten(abstand: abstand, zustaende: zustaende, breite: breite, hoehe: hoehe, wind: wind, testArray: [[0, 0], [-1, -1], [-1, 1], [1, -1], [1, 1]], akzeptanzen: [[true, false], [false, false]])
         self.updaten(abstand: abstand, zustaende: zustaende, breite: breite, hoehe: hoehe, wind: wind, testArray: [[0,0], [-1, -1], [-1, 1], [1, -1], [1, 1]], akzeptanzen: [[false, false], [false, true]])
       end
       self.updaten(abstand: abstand, zustaende: zustaende, breite: breite, hoehe: hoehe, wind: wind, testArray: [[0, -1], [0, 1], [1, 0], [-1, 0]], akzeptanzen: [[false, true], [true, false]])
-      10.times do
+      100.times do
         self.updaten(abstand: abstand, zustaende: zustaende, breite: breite, hoehe: hoehe, wind: wind, testArray: [[0, 0], [0, -1], [0, 1], [1, 0], [-1, 0]], akzeptanzen: [[true, false], [false, true]])
         self.updaten(abstand: abstand, zustaende: zustaende, breite: breite, hoehe: hoehe, wind: wind, testArray: [[0,0], [0, -1], [0, 1], [1, 0], [-1, 0]], akzeptanzen: [[false, true], [true, false]])
       end
