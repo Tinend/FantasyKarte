@@ -28,7 +28,7 @@ class HoehenProfil
     farben.push(berechneHelligkeitRechtsRunter(x: x - 1, y: y, hauptX: x, hauptY: y)) if x > 0 and y < @hoehenProfil.length - 1
     farben.push(berechneHelligkeitRechtsRunter(x: x, y: y - 1, hauptX: x, hauptY: y)) if x < @hoehenProfil[0].length - 1 and y > 0
     farben.push(berechneHelligkeitRechtsRunter(x: x, y: y, hauptX: x, hauptY: y)) if x < @hoehenProfil[0].length - 1 and y < @hoehenProfil.length - 1
-    return (farben.reduce(:+) / farben.length).round
+    return [[(farben.reduce(:+) / farben.length).round, 0].max, 255].min
   end
   
   def berechneHelligkeitRechtsRunter(x:, y:, hauptX:, hauptY:)
@@ -41,6 +41,6 @@ class HoehenProfil
   end
 
   def berechneNormalVektor(vektor1, vektor2)
-    [vektor1[1] * vektor2[2] - vektor1[2] * vektor2[1], vektor1[2] * vektor2[0] - vektor1[0] * vektor2[2], vektor1[0] * vektor2[1] - vektor1[1] * vektor2[0]]
+    [vektor1[2] * vektor2[1] - vektor1[1] * vektor2[2], vektor1[0] * vektor2[2] - vektor1[2] * vektor2[0], vektor1[1] * vektor2[0] - vektor1[0] * vektor2[1]]
   end
 end

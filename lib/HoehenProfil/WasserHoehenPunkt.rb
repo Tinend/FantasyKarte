@@ -5,13 +5,13 @@ class WasserHoehenPunkt < HoehenPunkt
   SonnenVektor = [0.5, 0.5, 0.5 ** 0.5]
   BeobachterVektor = [0, 1, 0.5]
   ZwischenVektor = SonnenVektor.zip(BeobachterVektor).map {|elemente| (elemente[0] + elemente[1]) / 2.0}
-  HelligkeitBasis = 10
-  SpiegelHelligkeitsFaktor = 1280
+  HelligkeitBasis = 20.0
+  SpiegelHelligkeitsFaktor = 12.80
   
   def farbe(scheinbareHoehe:, scheinbareBreite:, normalVektor:)
     helligkeit = scheinbareHoehe * scheinbareBreite * WasserHelligkeit
     helligkeit += berechneSpiegelungsHelligkeit(normalVektor: normalVektor)
-    helligkeit.round
+    helligkeit
   end
 
   def berechneSpiegelungsHelligkeit(normalVektor:)
