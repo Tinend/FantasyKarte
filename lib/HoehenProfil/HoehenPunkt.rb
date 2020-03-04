@@ -5,7 +5,7 @@ class HoehenPunkt
 
   attr_reader :hoehe
   
-  def farbe(scheinbareHoehe:, scheinbareBreite:, normalVektoren:)
+  def farbe(scheinbareHoehe:, scheinbareBreite:, normalVektor:)
     scheinbareHoehe * scheinbareBreite * 256
   end
 end

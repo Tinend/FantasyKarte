@@ -12,29 +12,6 @@ class WasserTyp < Typ
   VertikalerAbstandMinimum = 10
   MussFaerbenNummern = [21,22,23,24,25,26,27,28,29]
   DarfFaerbenNummern = [0, 254]
-  MindestAbstand = 2
-  WellenEndeWkeit = 0.2
-  WellenWkeit = 0.03
-  MaxWellenSteigung = Math::PI / 25
-  SonnenVektor = [1, 1, 2 **0.5]
-  ZwischenSonneBeobachterVektor = [0.5, 1, 0.5 / 3 ** 0.5 + 0.5 * 2 ** 0.5] # MittelVektor zwischen Beobachter und Sonne
-  SichtVektor = [0, 3 ** 0.5, 1] # Vektor, der in Richtung Beobachter zeigt
-  MaxSpiegelungsCosinus = 0.92
-  MinimalHelligkeit = -96
-  ReflexionMaxHelligkeit = 128
-  SpiegelMaxHelligkeit = 12800
-  #SpiegelMaxHelligkeit = 0
-  WellenPunkteApproximation = 20
-  #WellenMaximalSteigung = 15
-  #WellenLaenge = 0.8
-  WellenLaenge = 4
-  #FarbBerechnungsVerschiebungen = [[0,0], [0.49, 0], [-0.5, 0], [0, 0.49], [0, -0.5]]
-  FarbBerechnungsVerschiebungen = [[0,0]]
-  NotfallWellenFarbePunkte = [[1, 0], [-1, 0], [0, 1], [0, -1]]
-  YVerschiebungsToleranz = 0.01
-  #HintergrundFaktor = 10
-  HintergrundFaktor = 0.01
-  #HintergrundFaktor = 0
   MiniwellenHoehe = 0.05
   
   def initialize(breite, hoehe, wind:, hoehenProfil:)
@@ -248,7 +225,7 @@ class WasserTyp < Typ
           grau = @hoehenProfil.berechneHelligkeitAnKoordinate(x: x, y: y)
           #grau = [[(@hoehenProfil.hoehenProfil[y][x].hoehe / 10).to_i + 128, 255].min, 0].max
           #grau = [[(64 + 32 * @wellenZustand[y][x].hoehe).to_i, 255].min, 0].max
-          p [@wellenZustand[y][x].hoehe, @wellenZustand[y][x].y, @wellenZustand[y][x].x, Math::tan(@wellenZustand[y][x].y / @wellenZustand[y][x].x), grau, x, y]
+          #p [@wellenZustand[y][x].hoehe, @wellenZustand[y][x].y, @wellenZustand[y][x].x, Math::tan(@wellenZustand[y][x].y / @wellenZustand[y][x].x), grau, x, y]
           hintergrund[x, y] = ChunkyPNG::Color.rgb(grau, grau, grau)
         end
       end

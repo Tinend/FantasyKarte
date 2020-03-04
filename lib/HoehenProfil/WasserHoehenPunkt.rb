@@ -2,11 +2,11 @@ require "HoehenProfil/HoehenPunkt"
 
 class WasserHoehenPunkt < HoehenPunkt
   WasserHelligkeit = 128
-  SonnenVektor = [0.5, 0.5, 0.5 ** 0.5]
-  BeobachterVektor = [0, 1, 0.5]
+  SonnenVektor = [-0.5, -0.5, 0.5 ** 0.5]
+  BeobachterVektor = [0, -1, 0.5]
   ZwischenVektor = SonnenVektor.zip(BeobachterVektor).map {|elemente| (elemente[0] + elemente[1]) / 2.0}
-  HelligkeitBasis = 20.0
-  SpiegelHelligkeitsFaktor = 12.80
+  HelligkeitBasis = 128.0
+  SpiegelHelligkeitsFaktor = 2.0
   
   def farbe(scheinbareHoehe:, scheinbareBreite:, normalVektor:)
     helligkeit = scheinbareHoehe * scheinbareBreite * WasserHelligkeit

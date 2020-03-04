@@ -9,10 +9,11 @@ class HoehenProfil
 
   def hoehenPunktEinfuegen(x:, y:, hoehenPunkt:)
     @hoehenProfil[y][x] = hoehenPunkt
+    #@hoehenProfil[y][x] = WasserHoehenPunkt.new((x * y * (@hoehenProfil.length - y) * (@hoehenProfil[0].length - x)) / 1000000.0)
   end
 
   def findeY(x:, y:)
-    startY = y
+    startY = y * 2
     y = @hoehenProfil.length - 1
     until y == 0 or (y - startY) * Math::tan(Math::PI / 6) < @hoehenProfil[y][x].hoehe * 2
       y -= 1
