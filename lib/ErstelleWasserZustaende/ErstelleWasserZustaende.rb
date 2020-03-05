@@ -20,12 +20,12 @@ module ErstelleWasserZustaende
     (runden + 1).times do |i|
       abstand = 2 ** (runden - i)
       self.updaten(abstand: abstand, zustaende: zustaende, breite: breite, hoehe: hoehe, wind: wind, testArray: [[-1, -1], [-1, 1], [1, -1], [1, 1]], akzeptanzen: [[false, false], [false, true]])
-      10.times do
+      1.times do
         self.updaten(abstand: abstand, zustaende: zustaende, breite: breite, hoehe: hoehe, wind: wind, testArray: [[0, 0], [-1, -1], [-1, 1], [1, -1], [1, 1]], akzeptanzen: [[true, false], [false, false]])
         self.updaten(abstand: abstand, zustaende: zustaende, breite: breite, hoehe: hoehe, wind: wind, testArray: [[0,0], [-1, -1], [-1, 1], [1, -1], [1, 1]], akzeptanzen: [[false, false], [false, true]])
       end
       self.updaten(abstand: abstand, zustaende: zustaende, breite: breite, hoehe: hoehe, wind: wind, testArray: [[0, -1], [0, 1], [1, 0], [-1, 0]], akzeptanzen: [[false, true], [true, false]])
-      10.times do
+      1.times do
         self.updaten(abstand: abstand, zustaende: zustaende, breite: breite, hoehe: hoehe, wind: wind, testArray: [[0, 0], [0, -1], [0, 1], [1, 0], [-1, 0]], akzeptanzen: [[true, false], [false, true]])
         self.updaten(abstand: abstand, zustaende: zustaende, breite: breite, hoehe: hoehe, wind: wind, testArray: [[0,0], [0, -1], [0, 1], [1, 0], [-1, 0]], akzeptanzen: [[false, true], [true, false]])
       end
@@ -41,7 +41,7 @@ module ErstelleWasserZustaende
     richtung = differenz.map {|eintrag| eintrag / abstand}
     raise if start[0] + richtung[0] * abstand != ziel[0]
     raise if start[1] + richtung[1] * abstand != ziel[1]
-    summe = wind.vektor(ziel[0], (ziel[1]) / 2.0).map.with_index {|wert, index| wert / 2 * richtung[index]}
+    summe = wind.vektor(ziel[0], ziel[1] / 2.0).map.with_index {|wert, index| wert / 2 * richtung[index]}
     abstand.times do |i|
       vektor = wind.vektor(start[0] + i * richtung[0], (start[1] + i * richtung[1]) / 2.0)
       summe[0] += vektor[0] * richtung[0]

@@ -19,7 +19,7 @@ class KartenErzeuger
     @mittelgrund = ChunkyPNG::Image.new(@datenBild.width, @datenBild.height, ChunkyPNG::Color::TRANSPARENT)
     @vordergrund = ChunkyPNG::Image.new(@datenBild.width, @datenBild.height, ChunkyPNG::Color::TRANSPARENT)
     @schriftgrund = ChunkyPNG::Image.new(@datenBild.width, @datenBild.height, ChunkyPNG::Color::TRANSPARENT)
-    @wind = Wind.new(@datenBild.width, @datenBild.height, geschwindigkeit: PrimaerWindgeschwindigkeit)
+    @wind = Wind.erstelleZufaelligenWind(@datenBild.width, @datenBild.height, geschwindigkeit: PrimaerWindgeschwindigkeit)
     @terrainVerwalter = [
       TerrainVerwalter.new(BaumTyp.new(@datenBild.width, @datenBild.height), @hintergrund, @mittelgrund, @vordergrund, @datenBild),
       TerrainVerwalter.new(BergTyp.new(@datenBild.width, @datenBild.height), @hintergrund, @mittelgrund, @vordergrund, @datenBild),

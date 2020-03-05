@@ -2,19 +2,28 @@ require "NuetzlicheFunktionen/Windrichtung"
 require "NuetzlicheFunktionen/ZweiDWienerProzess"
 require "NuetzlicheFunktionen/definiereNeigungen"
 class Wind
+  
   WindWienerAbstand = 3
   WindWinkelDivisor = 500
   WindZahl = 5
   ##FallKonstante = 0.6
   FallKonstante = 0.8
-  def initialize(breite, hoehe, geschwindigkeit: 1)
-    @wind = Array.new(hoehe * 2) {Array.new(breite) {Windrichtung.new(grundGeschwindigkeit: geschwindigkeit)}}
+  
+  def initialize(breite:, hoehe:, wind:, geschwindigkeit:)
+    @breite = breite
+    @hoehe = hoehe
+    @wind = wind
+    @geschwindigkeit = geschwindigkeit
+  end
+  
+  def self.erstelleZufaelligenWind(breite, hoehe, geschwindigkeit: 1)
+    wind = Array.new(hoehe * 2) {Array.new(breite) {Windrichtung.standardErzeugen(grundGeschwindigkeit: geschwindigkeit)}}
     zweiDWienerProzess = ZweiDWienerProzess.new()
     WindZahl.times do |i|
       zufallsWinkel = rand(0) * Math::PI
       #wiener = zweiDWienerProzess.erstelleZweiDWienerProzess(breite, hoehe, WindWienerAbstand)
       wiener = definiereNeigungen(breite, hoehe * 2 - 1, FallKonstante)
-      @wind.zip(wiener).each do |ww|
+      wind.zip(wiener).each do |ww|
         ww[0].zip(ww[1]).each do |windRichtung|
           #windRichtung[0].windVektorErhalten(windRichtung[1] / WindWinkelDivisor)
           windRichtung[0].windVektorErhalten(windRichtung[1] * 4.5 + zufallsWinkel)
@@ -22,15 +31,18 @@ class Wind
       end
       puts "Wind #{i + 1} / #{WindZahl}"
     end
-    max = 0
-    @wind.each do |zeile|
-      zeile.each do |w|
-        max = [w.geschwindigkeit, max].max
-      end
-    end
-    puts max
+    Wind.new(breite: breite, hoehe: hoehe, wind: wind, geschwindigkeit: geschwindigkeit)
   end
 
+  def erstelleWasserWind(naechstePunkte)
+    wasserWind = @wind.zip(naechstePunkte).map.with_index do |windPunkte, y|
+      windPunkte[0].zip(windPunkte[1]).map.with_index do |windPunkt, x|
+        windPunkt[0].erzeugeWasserWindRichtung(x: x, y: y, naechsterPunkt: windPunkt[1])
+      end
+    end
+    Wind.new(breite: @breite, hoehe: @hoehe, wind: wasserWind, geschwindigkeit: @geschwindigkeit)
+  end
+  
   attr_reader :wind
 
   def geschwindigkeit(x, y)

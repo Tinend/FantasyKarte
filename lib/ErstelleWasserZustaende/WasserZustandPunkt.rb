@@ -26,19 +26,6 @@ class WasserZustandPunkt
     durchschnitt
   end
 
-  #def self.berechneDurchschnitt(xy)
-  #  durchschnitt = xy.reduce(WasserZustandPunkt.new(x: 0, y: 0)) do |wasserZustand, punkt|
-  #    wasserZustand.x += punkt.x / xy.length
-  #    wasserZustand.y += punkt.y / xy.length
-  #    wasserZustand
-  #  end
-  #  durchschnittsLaenge = xy.reduce(0) {|summe, wasserZustandPunkt| summe + wasserZustandPunkt.laenge} / xy.length
-  #  durchschnitt.laengeAnpassen(durchschnittsLaenge)
-  #  max = xy.max {|punkt1, punkt2| durchschnitt.abstand(punkt1) <=> durchschnitt.abstand(punkt2)}
-  #  durchschnitt.anpassenAn(max)
-  #  durchschnitt
-  #end
-
   def self.erstelleZufaellig()
     winkel = rand(0) * Math::PI
     WasserZustandPunkt.new(x: Math::sin(winkel) * WellenLaenge, y: Math::cos(winkel) * WellenLaenge)
