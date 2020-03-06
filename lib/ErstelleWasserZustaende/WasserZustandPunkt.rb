@@ -1,21 +1,21 @@
 class WasserZustandPunkt
   #WellenLaenge = 4.0
-  WellenLaenge = 3.0
+  WellenLaenge = 0.6
   #WellenMaximalSteigung = 15
   WellenMaximalSteigung = 10.0
   
-  def self.erstelleUpdate(winde, nachbarZustaende, vektorDistanz)
+  def self.erstelleUpdate(winde, nachbarZustaende, vektorDistanz, geschwindigkeit:)
     xy = winde.zip(nachbarZustaende, vektorDistanz).map do |windZustand|
       windZustand[1].berechneNeueKoordinaten(windZustand[0], windZustand[2])
     end
-    self.berechneDurchschnitt(xy)
+    self.berechneDurchschnitt(xy, geschwindigkeit: geschwindigkeit)
   end
 
-  def self.berechneDurchschnitt(xy)
+  def self.berechneDurchschnitt(xy, geschwindigkeit:)
     durchschnitt = xy.reduce(WasserZustandPunkt.new(x: 0, y: 0)) do |wasserZustand, punkt|
       punktLaenge = (punkt.x ** 2 + punkt.y ** 2) ** 0.5
-      wasserZustand.x += punkt.x / xy.length / punktLaenge
-      wasserZustand.y += punkt.y / xy.length / punktLaenge
+      wasserZustand.x += punkt.x / xy.length / punktLaenge * geschwindigkeit
+      wasserZustand.y += punkt.y / xy.length / punktLaenge * geschwindigkeit
       wasserZustand
     end
     #return durchschnitt
@@ -26,13 +26,14 @@ class WasserZustandPunkt
     durchschnitt
   end
 
-  def self.erstelleZufaellig()
+  def self.erstelleZufaellig(geschwindigkeit:)
     winkel = rand(0) * Math::PI
-    WasserZustandPunkt.new(x: Math::sin(winkel) * WellenLaenge, y: Math::cos(winkel) * WellenLaenge)
+    WasserZustandPunkt.new(x: Math::sin(winkel) * WellenLaenge * geschwindigkeit, y: Math::cos(winkel) * WellenLaenge * geschwindigkeit)
   end
   
   def initialize(x:, y:)
     raise if x.to_f.nan?
+    p [x, y]
     @x = x
     @y = y
   end

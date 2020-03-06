@@ -3,13 +3,8 @@ require "Typen/WasserTyp"
 
 module ErstelleWasserZustaende
   def self.erstelleWasserZustaende(breite:, hoehe:, wind:)
-    zustaende = self.erzeugeZustaende(breite: breite, hoehe: hoehe, wind: wind)
-    #self.glaetteZustaende(zustaende: zustaende, breite: breite, hoehe: hoehe, wind: wind)
-  end
-
-  def self.erzeugeZustaende(breite:, hoehe:, wind:)
     zustaende = Array.new(hoehe) {|y| Array.new(breite) {|x| WasserZustandPunkt.new(x: 0, y: 0)}}
-    zustaende[0][0] = WasserZustandPunkt.erstelleZufaellig()
+    zustaende[0][0] = WasserZustandPunkt.erstelleZufaellig(geschwindigkeit: wind.geschwindigkeit(0,0))
     self.updaten(abstand: 1, zustaende: zustaende, breite: breite, hoehe: hoehe, wind: wind, testArray: [[-1, 0], [0, -1]], akzeptanzen: [[true, true], [true, true]])
     0.times do
       self.updaten(abstand: 1, zustaende: zustaende, breite: breite, hoehe: hoehe, wind: wind, testArray: [[0, 0], [0, -1], [0, 1], [1, 0], [-1, 0]], akzeptanzen: [[true, false], [false, true]])
@@ -41,14 +36,17 @@ module ErstelleWasserZustaende
     richtung = differenz.map {|eintrag| eintrag / abstand}
     raise if start[0] + richtung[0] * abstand != ziel[0]
     raise if start[1] + richtung[1] * abstand != ziel[1]
-    summe = wind.vektor(ziel[0], ziel[1] / 2.0).map.with_index {|wert, index| wert / 2 * richtung[index]}
+    geschwindigkeit = wind.geschwindigkeit(ziel[0], ziel[1] / 2.0)
+    summe = wind.vektor(ziel[0], ziel[1] / 2.0).map.with_index {|wert, index| wert / 2 * richtung[index] / geschwindigkeit ** 2}
     abstand.times do |i|
       vektor = wind.vektor(start[0] + i * richtung[0], (start[1] + i * richtung[1]) / 2.0)
-      summe[0] += vektor[0] * richtung[0]
-      summe[1] += vektor[1] * richtung[1]
+      geschwindigkeit = wind.geschwindigkeit(start[0] + i * richtung[0], (start[1] + i * richtung[1]) / 2.0)
+      summe[0] += vektor[0] * richtung[0] / geschwindigkeit ** 2
+      summe[1] += vektor[1] * richtung[1] / geschwindigkeit ** 2
     end
-    summe[0] -= wind.vektor(start[0], (start[1]) / 2.0)[0] / 2 * richtung[0]
-    summe[1] -= wind.vektor(start[0], (start[1]) / 2.0)[1] / 2 * richtung[1]
+    geschwindigkeit = wind.geschwindigkeit(start[0], start[1] / 2.0)
+    summe[0] -= wind.vektor(start[0], (start[1]) / 2.0)[0] / 2 * richtung[0] / geschwindigkeit ** 2
+    summe[1] -= wind.vektor(start[0], (start[1]) / 2.0)[1] / 2 * richtung[1] / geschwindigkeit ** 2
     summe.map {|wert| wert / abstand}
   end
 
@@ -70,7 +68,8 @@ module ErstelleWasserZustaende
             end
           end
           next if winde.length == 0
-          zustaende[y][x] = WasserZustandPunkt.erstelleUpdate(winde, nachbarZustaende, richtungen)
+          geschwindigkeit = wind.geschwindigkeit(x, y / 2.0)
+          zustaende[y][x] = WasserZustandPunkt.erstelleUpdate(winde, nachbarZustaende, richtungen, geschwindigkeit: geschwindigkeit)
         end
       end
     end
