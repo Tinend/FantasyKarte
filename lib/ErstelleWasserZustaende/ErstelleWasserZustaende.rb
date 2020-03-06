@@ -37,14 +37,17 @@ module ErstelleWasserZustaende
     raise if start[0] + richtung[0] * abstand != ziel[0]
     raise if start[1] + richtung[1] * abstand != ziel[1]
     geschwindigkeit = wind.geschwindigkeit(ziel[0], ziel[1] / 2.0)
+    geschwindigkeit = 1 if geschwindigkeit == 0
     summe = wind.vektor(ziel[0], ziel[1] / 2.0).map.with_index {|wert, index| wert / 2 * richtung[index] / geschwindigkeit ** 2}
     abstand.times do |i|
       vektor = wind.vektor(start[0] + i * richtung[0], (start[1] + i * richtung[1]) / 2.0)
       geschwindigkeit = wind.geschwindigkeit(start[0] + i * richtung[0], (start[1] + i * richtung[1]) / 2.0)
+      geschwindigkeit = 1 if geschwindigkeit == 0
       summe[0] += vektor[0] * richtung[0] / geschwindigkeit ** 2
       summe[1] += vektor[1] * richtung[1] / geschwindigkeit ** 2
     end
     geschwindigkeit = wind.geschwindigkeit(start[0], start[1] / 2.0)
+    geschwindigkeit = 1 if geschwindigkeit == 0
     summe[0] -= wind.vektor(start[0], (start[1]) / 2.0)[0] / 2 * richtung[0] / geschwindigkeit ** 2
     summe[1] -= wind.vektor(start[0], (start[1]) / 2.0)[1] / 2 * richtung[1] / geschwindigkeit ** 2
     summe.map {|wert| wert / abstand}

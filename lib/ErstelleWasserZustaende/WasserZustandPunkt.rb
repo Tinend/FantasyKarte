@@ -1,6 +1,6 @@
 class WasserZustandPunkt
   #WellenLaenge = 4.0
-  WellenLaenge = 0.6
+  WellenLaenge = 0.3
   #WellenMaximalSteigung = 15
   WellenMaximalSteigung = 10.0
   
@@ -14,6 +14,7 @@ class WasserZustandPunkt
   def self.berechneDurchschnitt(xy, geschwindigkeit:)
     durchschnitt = xy.reduce(WasserZustandPunkt.new(x: 0, y: 0)) do |wasserZustand, punkt|
       punktLaenge = (punkt.x ** 2 + punkt.y ** 2) ** 0.5
+      punktLaenge = 1 if punktLaenge == 0
       wasserZustand.x += punkt.x / xy.length / punktLaenge * geschwindigkeit
       wasserZustand.y += punkt.y / xy.length / punktLaenge * geschwindigkeit
       wasserZustand
@@ -33,7 +34,6 @@ class WasserZustandPunkt
   
   def initialize(x:, y:)
     raise if x.to_f.nan?
-    p [x, y]
     @x = x
     @y = y
   end
@@ -44,6 +44,7 @@ class WasserZustandPunkt
 
   def laengeAnpassen(laengeNeu)
     laengeAlt = laenge
+    laengeAlt = 1 if laenge == 0
     @x *= laengeNeu / laengeAlt
     @y *= laengeNeu / laengeAlt
   end
@@ -86,6 +87,7 @@ class WasserZustandPunkt
       #sleep(0.1)
     #end
     laengeAlt = laenge
+    laengeAlt = 1 if laenge == 0
     @x *= (1 + verschiebung / laengeAlt)
     @y *= (1 + verschiebung / laengeAlt)
   end
