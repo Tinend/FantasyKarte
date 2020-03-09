@@ -1,8 +1,7 @@
 class WasserZustandPunkt
-  #WellenLaenge = 4.0
-  WellenLaenge = 0.3
-  #WellenMaximalSteigung = 15
-  WellenMaximalSteigung = 10.0
+  WellenLaenge = 8#3
+  WellenMaximalSteigung = 13.0
+  LaengeAnpassExponent = 0.7
   
   def self.erstelleUpdate(winde, nachbarZustaende, vektorDistanz, geschwindigkeit:)
     xy = winde.zip(nachbarZustaende, vektorDistanz).map do |windZustand|
@@ -11,19 +10,27 @@ class WasserZustandPunkt
     self.berechneDurchschnitt(xy, geschwindigkeit: geschwindigkeit)
   end
 
+  def self.berechneDistanz(wert:, richtung:, geschwindigkeit:)
+    richtung.map {|richtungsSkalar| wert * richtungsSkalar / geschwindigkeit ** 2}
+  end
+  
   def self.berechneDurchschnitt(xy, geschwindigkeit:)
+    #anzeige = []
     durchschnitt = xy.reduce(WasserZustandPunkt.new(x: 0, y: 0)) do |wasserZustand, punkt|
       punktLaenge = (punkt.x ** 2 + punkt.y ** 2) ** 0.5
       punktLaenge = 1 if punktLaenge == 0
-      wasserZustand.x += punkt.x / xy.length / punktLaenge * geschwindigkeit
-      wasserZustand.y += punkt.y / xy.length / punktLaenge * geschwindigkeit
+      wasserZustand.x += punkt.x / xy.length / punktLaenge * geschwindigkeit * WellenLaenge
+      wasserZustand.y += punkt.y / xy.length / punktLaenge * geschwindigkeit * WellenLaenge
+      #anzeige.push([punkt.x / xy.length / punktLaenge * geschwindigkeit, punkt.y / xy.length / punktLaenge * geschwindigkeit])
       wasserZustand
     end
+    #p anzeige
     #return durchschnitt
     durchschnittsLaenge = xy.reduce(0) {|summe, wasserZustandPunkt| summe + wasserZustandPunkt.laenge} / xy.length
     durchschnitt.laengeAnpassen(durchschnittsLaenge)
-    max = xy.max {|punkt1, punkt2| durchschnitt.abstand(punkt1) <=> durchschnitt.abstand(punkt2)}
-    durchschnitt.anpassenAn(max)
+    #max = xy.max {|punkt1, punkt2| durchschnitt.abstand(punkt1) <=> durchschnitt.abstand(punkt2)}
+    #durchschnitt.anpassenAn(max)
+    #p [durchschnitt.x, durchschnitt.y]
     durchschnitt
   end
 
@@ -45,8 +52,8 @@ class WasserZustandPunkt
   def laengeAnpassen(laengeNeu)
     laengeAlt = laenge
     laengeAlt = 1 if laenge == 0
-    @x *= laengeNeu / laengeAlt
-    @y *= laengeNeu / laengeAlt
+    @x *= (laengeNeu / laengeAlt) ** LaengeAnpassExponent
+    @y *= (laengeNeu / laengeAlt) ** LaengeAnpassExponent
   end
   
   def berechneNeueKoordinaten(wind, vektorDistanz)
@@ -77,6 +84,7 @@ class WasserZustandPunkt
   end
 
   def anpassenAn(wasserZustandPunkt)
+    p [1.0 / WellenMaximalSteigung, abstand(wasserZustandPunkt), - @x ** 2, @y ** 2]
     verschiebung = [1.0 / WellenMaximalSteigung - abstand(wasserZustandPunkt), - (@x ** 2 + @y ** 2) ** 0.5 / 10].max
     verschiebung = 0 if verschiebung < 0
     if verschiebung > 0

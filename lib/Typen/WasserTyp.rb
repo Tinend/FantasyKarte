@@ -13,8 +13,8 @@ class WasserTyp < Typ
   VertikalerAbstandMinimum = 10
   MussFaerbenNummern = [21,22,23,24,25,26,27,28,29]
   DarfFaerbenNummern = [0, 254]
-  #MiniwellenHoehe = 0.05
-  MiniwellenHoehe = 0.2
+  MiniwellenHoehe = 0.01#0.03
+  #MiniwellenHoehe = 0.2
   
   def initialize(breite, hoehe, wind:, hoehenProfil:)
     @wind = wind
@@ -72,7 +72,7 @@ class WasserTyp < Typ
     @wellenZustand.each_with_index do |zeile, y|
       zeile.each_with_index do |zustand, x|
         if @hintergrund[x, y / 2] != ChunkyPNG::Color::TRANSPARENT
-          @hoehenProfil.hoehenPunktEinfuegen(x: x, y: y, hoehenPunkt: WasserHoehenPunkt.new(zustand.hoehe + (rand(0) - rand(0)) ** 3 * MiniwellenHoehe))
+          @hoehenProfil.hoehenPunktEinfuegen(x: x, y: y, hoehenPunkt: WasserHoehenPunkt.new(zustand.hoehe + (rand(0) - rand(0)) * MiniwellenHoehe))
         end
       end
     end

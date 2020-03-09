@@ -80,7 +80,7 @@ class Wind
   def richtung(x, y)
     y = (y * 2).to_i
     x = x.to_i
-    return @wind[y][x].geschwindigkeit
+    return @wind[y][x].richtung
     array = [@wind[y][x].vektor] * 4
     array += [@wind[y][x - 1].vektor] if x > 0
     array += [@wind[y][x + 1].vektor] if @wind.length > 0 and x < @wind[0].length - 1
