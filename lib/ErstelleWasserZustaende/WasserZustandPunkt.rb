@@ -1,8 +1,10 @@
 class WasserZustandPunkt
-  WellenLaenge = 8#3
+  WellenLaenge = 3#8
   WellenMaximalSteigung = 13.0
   LaengeAnpassExponent = 0.7
-  
+  MaxEntfernung = 50
+  LandNaeheWindStaerke = 0.04#0.02
+    
   def self.erstelleUpdate(winde, nachbarZustaende, vektorDistanz, geschwindigkeit:)
     xy = winde.zip(nachbarZustaende, vektorDistanz).map do |windZustand|
       windZustand[1].berechneNeueKoordinaten(windZustand[0], windZustand[2])

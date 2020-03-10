@@ -53,7 +53,7 @@ class BergTyp < Typ
         else
           grau = rand(200) + 56
         end
-        hintergrund[x, y] = ChunkyPNG::Color.rgb(grau, grau, grau)
+        hintergrund[x, y] = ChunkyPNG::Color.rgb(grau, grau, grau) if @hintergrund[x, y] != ChunkyPNG::Color::TRANSPARENT
         #hintergrund[x, y] = bild[x, y] if @hintergrund[x, y] != ChunkyPNG::Color::TRANSPARENT
       end
     end

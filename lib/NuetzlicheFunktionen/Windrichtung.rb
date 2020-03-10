@@ -1,7 +1,6 @@
-class Windrichtung
+require "ErstelleWasserZustaende/WasserZustandPunkt"
 
-  MaxEntfernung = 50
-  LandNaeheWindStaerke = 0.02
+class Windrichtung
   
   def initialize(vektor:, grundGeschwindigkeit:)
     @grundGeschwindigkeit = grundGeschwindigkeit
@@ -16,15 +15,15 @@ class Windrichtung
   def erzeugeWasserWindRichtung(x:, y:, naechsterPunkt:)
     laenge = ((x - naechsterPunkt[0]) ** 2 + (y - naechsterPunkt[1]) ** 2) ** 0.5
     return Windrichtung.new(vektor: @vektor.dup, grundGeschwindigkeit: @grundGeschwindigkeit) if naechsterPunkt == [x, y]
-    return Windrichtung.new(vektor: @vektor.dup, grundGeschwindigkeit: @grundGeschwindigkeit) if laenge >= MaxEntfernung
+    return Windrichtung.new(vektor: @vektor.dup, grundGeschwindigkeit: @grundGeschwindigkeit) if laenge >= WasserZustandPunkt::MaxEntfernung
     wasserVektor = @vektor.dup
     #puts
-    #p (MaxEntfernung - laenge) ** 0.5 * LandNaeheWindStaerke
+    #p (WasserZustandPunkt::MaxEntfernung - laenge) ** 0.5 * WasserZustandPunkt::LandNaeheWindStaerke
     #p wasserVektor
-    wasserVektor.collect! {|element| element * (laenge / MaxEntfernung) ** 2}
+    wasserVektor.collect! {|element| element * (laenge / WasserZustandPunkt::MaxEntfernung) ** 2}
     #p wasserVektor
-    wasserVektor[0] += (x - naechsterPunkt[0]) / laenge ** 0.5 * (MaxEntfernung - laenge) ** 0.5 * LandNaeheWindStaerke
-    wasserVektor[1] += (y - naechsterPunkt[1]) / laenge ** 0.5 * (MaxEntfernung - laenge) ** 0.5 * LandNaeheWindStaerke
+    wasserVektor[0] += (x - naechsterPunkt[0]) / laenge ** 0.4 * (WasserZustandPunkt::MaxEntfernung - laenge) ** 0.6 * WasserZustandPunkt::LandNaeheWindStaerke
+    wasserVektor[1] += (y - naechsterPunkt[1]) / laenge ** 0.4 * (WasserZustandPunkt::MaxEntfernung - laenge) ** 0.6 * WasserZustandPunkt::LandNaeheWindStaerke
     #p wasserVektor
     Windrichtung.new(vektor: wasserVektor, grundGeschwindigkeit: @grundGeschwindigkeit)
   end
